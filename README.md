@@ -232,32 +232,6 @@ sudo docker stop id
 
 ----
 
-### Deploying on VPS Using docker-compose
-
-**NOTE**: If you want to use port other than 80, change it in [docker-compose.yml](https://github.com/anasty17/mirror-leech-telegram-bot/blob/master/docker-compose.yml) also.
-
-```
-sudo apt install docker-compose
-```
-- Build and run Docker image:
-```
-sudo docker-compose up
-```
-- After editing files with nano for example (nano start.sh):
-```
-sudo docker-compose up --build
-```
-- To stop the image:
-```
-sudo docker-compose stop
-```
-- To run the image:
-```
-sudo docker-compose start
-```
-- Tutorial video from Tortoolkit repo for docker-compose and checking ports
-<p><a href="https://youtu.be/c8_TU1sPK08"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
-
 ------
 
 ## Deploying on Heroku
