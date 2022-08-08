@@ -88,7 +88,7 @@ def getHerokuDetails(h_api_key, h_app_name):
         abc += f"<b>├ 🎃 APP USAGE:</b> {get_readable_time(AppQuotaUsed)}\n"
         abc += f"<b>├ 🗑️ OTHER APP:</b> {get_readable_time(OtherAppsUsage)}\n"
         abc += f'<b>│</b>\n'
-        abc += f'<b>╰─《 ☣️ @toxytech ☣️ 》</b>'
+        abc += f'<b>╰─《 ☣️ @dipeshmirror ☣️ 》</b>'
         return abc
     except Exception as g:
         LOGGER.error(g)
@@ -320,8 +320,8 @@ help_admin = telegraph.create_page(
 
 def bot_help(update, context):
     button = ButtonMaker()
-    button.buildbutton("👤 User", f"https://telegra.ph/{help_user}")
-    button.buildbutton("🛡️ Admin", f"https://telegra.ph/{help_admin}")
+    button.buildbutton("👤 User", f"https://graph.org/{help_user}")
+    button.buildbutton("🛡️ Admin", f"https://graph.org/{help_admin}")
     sendMarkup(help_string, context.bot, update.message, InlineKeyboardMarkup(button.build_menu(2)))
 
        
