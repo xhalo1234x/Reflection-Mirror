@@ -3,7 +3,7 @@ For Now Only Heroku Code There in Future I will add master branch too
 
 # Features:
 
-## Modified By Dipesh And ToxyTech
+## Modified By ToxyTech
 - BOT PM
 - LOGS CHANNEL
 - ELAPSED TIME
