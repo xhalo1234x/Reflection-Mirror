@@ -88,7 +88,7 @@ def getHerokuDetails(h_api_key, h_app_name):
         abc += f"<b>├ 🎃 APP USAGE:</b> {get_readable_time(AppQuotaUsed)}\n"
         abc += f"<b>├ 🗑️ OTHER APP:</b> {get_readable_time(OtherAppsUsage)}\n"
         abc += f'<b>│</b>\n'
-        abc += f'<b>╰─《 ☣️ @krn270101 ☣️ 》</b>'
+        abc += f'<b>╰─《 ☣️ @toxytech ☣️ 》</b>'
         return abc
     except Exception as g:
         LOGGER.error(g)
@@ -99,6 +99,20 @@ def getHerokuDetails(h_api_key, h_app_name):
 IMAGE_X = "http://telegra.ph/REFLECTION-07-18"
 
 now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
+
+def progress_bar(percentage):
+    p_used = '⬢'
+    p_total = '⬡'
+    if isinstance(percentage, str):
+        return 'NaN'
+    try:
+        percentage=int(percentage)
+    except:
+        percentage = 0
+    return ''.join(
+        p_used if i <= percentage // 10 else p_total for i in range(1, 11)
+    )
+
 
 def stats(update, context):
     if ospath.exists('.git'):
@@ -136,9 +150,9 @@ def stats(update, context):
             f'<b>├ 💿 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝙵𝚁𝙴𝙴:</b> {free}\n'\
             f'<b>├ 🔺 𝚄𝙿𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {sent}\n'\
             f'<b>├ 🔻 𝙳𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {recv}\n'\
-            f'<b>├ 🖥️ 𝙲𝙿𝚄 𝚄𝚂𝙰𝙶𝙴:</b> {cpuUsage}%\n'\
-            f'<b>├ 🎮 𝚁𝙰𝙼:</b> {mem_p}%\n'\
-            f'<b>├ 👸 𝙳𝙸𝚂𝙺 𝚄𝚂𝙴𝙳:</b> {disk}%\n'\
+            f'<b>├ 🖥️ 𝙲𝙿𝚄 𝚄𝚂𝙰𝙶𝙴:</b> {progress_bar(cpuUsage)} {cpuUsage}%\n' \
+            f'<b>├ 🎮 𝚁𝙰𝙼:</b> {progress_bar(mem_p)} {mem_p}%\n' \
+            f'<b>├ 👸 𝙳𝙸𝚂𝙺 𝚄𝚂𝙴𝙳:</b> {progress_bar(disk)} {disk}%\n\n' \
             f'<b>├ 💽 𝙿𝙷𝚈𝚂𝙸𝙲𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {p_core}\n'\
             f'<b>├ 🍥 𝚃𝙾𝚃𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {t_core}\n'\
             f'<b>├ ✳ 𝚂𝚆𝙰𝙿:</b> {swap_t}\n'\
