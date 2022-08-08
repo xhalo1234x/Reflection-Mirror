@@ -169,7 +169,8 @@ def stats(update, context):
 def start(update, context):
     buttons = ButtonMaker()
     buttons.buildbutton("😎 Master", "https://t.me/toxytech")
-    buttons.buildbutton("🔥 Group", "https://t.me/dipeshmirror")
+    buttons.buildbutton("🙋 Mirror Group", "https://t.me/dipeshmirror")
+    buttons.buildbutton("🇮🇳 Support Group", "https://t.me/mirrorsociety")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
         start_string = f'''
