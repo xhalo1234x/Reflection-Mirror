@@ -139,6 +139,19 @@ def get_progress_bar_string(status):
     p_str = f"「{p_str}」"
     return p_str
 
+def progress_bar(percentage):
+    p_used = '⬢'
+    p_total = '⬡'
+    if isinstance(percentage, str):
+        return 'NaN'
+    try:
+        percentage=int(percentage)
+    except:
+        percentage = 0
+    return ''.join(
+        p_used if i <= percentage // 10 else p_total for i in range(1, 11)
+    )
+
 def get_readable_message():
     with download_dict_lock:
         msg = ""
@@ -151,7 +164,7 @@ def get_readable_message():
                 globals()['PAGE_NO'] -= 1
         for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
             msg += f"<b>Name:</b> <code>{escape(str(download.name()))}</code>"
-            msg += f"\n<b>╭🤖 Status:</b> <i>{download.status()}</i>"
+            msg += f"\n<b>╭Status:</b> <i>{download.status()}</i>"
             if download.status() not in [MirrorStatus.STATUS_SPLITTING, MirrorStatus.STATUS_SEEDING]:
                 msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
                 if download.status() in [MirrorStatus.STATUS_DOWNLOADING,
@@ -229,18 +242,18 @@ def get_readable_message():
         
         buttons = ButtonMaker()
         # buttons.sbutton("Refresh", "status refresh")
-        buttons.sbutton("📈 STATISTICS 📈", str(THREE))
+        buttons.sbutton("📈", str(THREE))
       #  buttons.sbutton("Close", "status close")
         sbutton = InlineKeyboardMarkup(buttons.build_menu(3))
         
         if STATUS_LIMIT is not None and tasks > STATUS_LIMIT:
             msg += f"<b>Tasks:</b> {tasks}\n"
             buttons = ButtonMaker()
-            buttons.sbutton("⏪Previous", "status pre")
+            buttons.sbutton("⏪", "status pre")
             buttons.sbutton(f"{PAGE_NO}/{pages}", str(THREE))
-            buttons.sbutton("Next⏩", "status nex")
-            buttons.sbutton("🔄 REFRESH 🔄", "status refresh")
-            buttons.sbutton("❌ CLOSE ❌", "status close")
+            buttons.sbutton("⏩", "status nex")
+            buttons.sbutton("🔄", "status refresh")
+            buttons.sbutton("❌", "status close")
             button = InlineKeyboardMarkup(buttons.build_menu(3))
             return msg + bmsg, button
         return msg + bmsg, sbutton
@@ -349,45 +362,25 @@ def pop_up_stats(update, context):
     query.answer(text=stats, show_alert=True)
 def bot_sys_stats():
     currentTime = get_readable_time(time() - botStartTime)
-    cpu = psutil.cpu_percent()
-    mem = psutil.virtual_memory().percent
-    disk = psutil.disk_usage(DOWNLOAD_DIR).percent
-    total, used, free = shutil.disk_usage(DOWNLOAD_DIR)
-    total = get_readable_file_size(total)
-    used = get_readable_file_size(used)
-    free = get_readable_file_size(free)
+    total, used, free, disk = disk_usage('/')
+    disk_t = get_readable_file_size(total)
+    disk_f = get_readable_file_size(free)
+    memory = virtual_memory()
+    mem_p = memory.percent
     recv = get_readable_file_size(psutil.net_io_counters().bytes_recv)
     sent = get_readable_file_size(psutil.net_io_counters().bytes_sent)
-    num_active = 0
-    num_upload = 0
-    num_split = 0
-    num_extract = 0
-    num_archi = 0
-    tasks = len(download_dict)
-    for stats in list(download_dict.values()):
-       if stats.status() == MirrorStatus.STATUS_DOWNLOADING:
-                num_active += 1
-       if stats.status() == MirrorStatus.STATUS_UPLOADING:
-                num_upload += 1
-       if stats.status() == MirrorStatus.STATUS_ARCHIVING:
-                num_archi += 1
-       if stats.status() == MirrorStatus.STATUS_EXTRACTING:
-                num_extract += 1
-       if stats.status() == MirrorStatus.STATUS_SPLITTING:
-                num_split += 1
-    stats = f"Bot Statistics"
-    stats += f"""
+    cpuUsage = cpu_percent(interval=1)
+    return f"""
+{TITLE_NAME} BOT STATS
+CPU:  {progress_bar(cpuUsage)} {cpuUsage}%
+RAM: {progress_bar(mem_p)} {mem_p}%
+DISK: {progress_bar(disk)} {disk}%
+T: {disk_t}GB | F: {disk_f}GB
+Working For: {currentTime}
+T-DL: {recv} | T-UL: {sent}
 Made with ❤️ by Dipesh
-Sent : {sent} | Recv : {recv}
-CPU : {cpu}% | RAM : {mem}%
-
-DL : {num_active} | UP : {num_upload} | SPLIT : {num_split}
-ZIP : {num_archi} | UNZIP : {num_extract} | TOTAL : {tasks}
-
-Limits : T/D : {TORRENT_DIRECT_LIMIT}GB | Z/U : {ZIP_UNZIP_LIMIT}GB
-
 """
-    return stats
+    
 dispatcher.add_handler(
     CallbackQueryHandler(pop_up_stats, pattern="^" + str(THREE) + "$")
 )
