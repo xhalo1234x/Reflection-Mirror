@@ -90,29 +90,59 @@ Fill up rest of the fields. Meaning of each field is discussed below:
 - `TELEGRAM_HASH`: This is to authenticate your Telegram account for downloading Telegram files. You can get this from https://my.telegram.org.
 
 **2. Optional Fields**
-- `DATABASE_URL`: Your SQL Database URL. Follow this [Generate Database](https://github.com/anasty17/mirror-leech-telegram-bot/tree/master#generate-database) to generate database. Data will be saved in Database: auth and sudo users, leech settings including thumbnails for each user, rss data and incomplete tasks. **NOTE**: If deploying on heroku and using heroku postgresql delete this variable from **config.env** file. **DATABASE_URL** will be grabbed from heroku variables.
+- `BOT_PM`: - set it`True` if you want to send mirror links and leeched files in user's PM, Default is `False`.
+- `DATABASE_URL`: Your SQL Database URL. Follow this [Generate Database](https://github.com/arshsisodiya/helios-mirror/tree/master#generate-database) to generate database. Data will be saved in Database: auth and sudo users, leech settings including thumbnails for each user, rss data and incomplete tasks. **NOTE**: If deploying on heroku and using heroku postgresql delete this variable from **config.env** file. **DATABASE_URL** will be grabbed from heroku variables.
 - `AUTHORIZED_CHATS`: Fill user_id and chat_id of groups/users you want to authorize. Separate them by space.
 - `SUDO_USERS`: Fill user_id of users whom you want to give sudo permission. Separate them by space.
 - `IGNORE_PENDING_REQUESTS`: Ignore pending requests after restart. Default is `False`. `Bool`
-- `USE_SERVICE_ACCOUNTS`: Whether to use Service Accounts or not. For this to work see [Using Service Accounts](https://github.com/anasty17/mirror-leech-telegram-bot#generate-service-accounts-what-is-service-account) section below. Default is `False`. `Bool`
+- `USE_SERVICE_ACCOUNTS`: Whether to use Service Accounts or not. For this to work see [Using Service Accounts](https://github.com/arshsisodiya/helios-mirror#generate-service-accounts-what-is-service-account) section below. Default is `False`. `Bool`
 - `INDEX_URL`: Refer to https://gitlab.com/ParveenBhadooOfficial/Google-Drive-Index.
 - `STATUS_LIMIT`: Limit the no. of tasks shown in status message with buttons. **NOTE**: Recommended limit is `4` tasks.
 - `STOP_DUPLICATE`: Bot will check file in Drive, if it is present in Drive, downloading or cloning will be stopped. (**NOTE**: File will be checked using filename not file hash, so this feature is not perfect yet). Default is `False`. `Bool`
 - `CMD_INDEX`: commands index number. This number will added at the end all commands.
 - `UPTOBOX_TOKEN`: Uptobox token to mirror uptobox links. Get it from [Uptobox Premium Account](https://uptobox.com/my_account).
 - `TORRENT_TIMEOUT`: Timeout of dead torrents downloading with qBittorrent and Aria2c in seconds.
-- `EXTENSION_FILTER`: File extensions that won't upload/clone. Separate them by space.
+- `EXTENTION_FILTER`: File extentions that won't upload/clone. Separate them by space.
 - `INCOMPLETE_TASK_NOTIFIER`: Get incomplete task messages after restart. Require database and (supergroup or channel). Default is `False`. `Bool`
 
 ### Update
-- `UPSTREAM_REPO`: Your github repository link, if your repo is private add `https://username:{githubtoken}@github.com/{username}/{reponame}` format. Get token from [Github settings](https://github.com/settings/tokens). So you can update your bot from filled repository on each restart. **NOTE**: Any change in docker or requirements you need to deploy/build again with updated repo to take effect. DON'T delete .gitignore file. For more information read [THIS](https://github.com/anasty17/mirror-leech-telegram-bot/tree/master#upstream-repo-recommended).
+- `UPSTREAM_REPO`: Your github repository link, if your repo is private add `https://username:{githubtoken}@github.com/{username}/{reponame}` format. Get token from [Github settings](https://github.com/settings/tokens). So you can update your bot from filled repository on each restart. **NOTE**: Any change in docker or requirements you need to deploy/build again with updated repo to take effect. DON'T delete .gitignore file. For more information read [THIS](https://github.com/arshsisodiya/helios-mirror/tree/master#upstream-repo-recommended).
 - `UPSTREAM_BRANCH`: Upstream branch for update. Default is `master`.
 
+### Mirror
+- `MIRROR_LOGS`: - Chat id of channels/groups where you want to store Mirror logs, ***NOTE*** Add bot in Mirror logs channel/group as Admin.
+- `MIRROR_ENABLED`: - If You Want Mirror Enabled.
+
+### Clone
+- `CLONE_ENABLED`: - If You Want Clone Enabled.
+
 ### Leech
+- `LEECH_LOG`: - Chat id of channel/group where leeched files will be uploaded, **NOTE:** only put 1 channel/group id starts with -100xxxxxxxxx, ***NOTE*** add bot in that channel/group as Admin, if you leave this empty bot will sent leech files in current chat.
+- `LEECH_ENABLED`: - If You Want Leech Enabled.
 - `TG_SPLIT_SIZE`: Size of split in bytes. Default is `2GB`.
 - `AS_DOCUMENT`: Default type of Telegram file upload. Default is `False` mean as media. `Bool`
 - `EQUAL_SPLITS`: Split files larger than **TG_SPLIT_SIZE** into equal parts size (Not working with zip cmd). Default is `False`. `Bool`
 - `CUSTOM_FILENAME`: Add custom word to leeched file name.
+
+### Fsub
+- `FSUB`: set it`True` if you want to Enable Force Subscribe to Channel, ***NOTE*** Add bot in Mirror logs channel/group as Admin.
+- `CHANNEL_USERNAME`: = Channel Username For Force Subscribe, ***NOTE*** Add bot in Mirror logs channel/group as Admin.
+- `FSUB_CHANNEL_ID`: = Channel Id for Force Subscribe, ***NOTE*** Add bot in Mirror logs channel/group as Admin.
+
+### Telegraph ui
+- `TITLE_NAME`: Title name for Telegraph pages (while using /list command)
+- `AUTHOR_NAME`: = Author name for Telegraph pages
+- `AUTHOR_URL`: = Author URL for Telegraph page
+- `GD_INFO`: = Description of file uploaded to gdrive using bot
+
+### Bot Commands Auto Set
+- `SET_BOT_COMMANDS`: - If You Want Mirror Enabled.
+
+### WayBack
+- `WAYBACK_ENABLED`: - If You Want WayBack Enabled.
+
+## AntiList 
+- `ANILIST_ENABLED`: - If You Want AntiList Enabled.
 
 ### qBittorrent
 - `BASE_URL_OF_BOT`: Valid BASE URL where the bot is deployed to use qbittorrent web selection. Format of URL should be `http://myip`, where `myip` is the IP/Domain(public) of your bot or if you have chosen port other than `80` so write it in this format `http://myip:port` (`http` and not `https`). This Var is optional on VPS and required for Heroku specially to avoid app sleeping/idling. For Heroku fill `https://yourappname.herokuapp.com`. Still got idling? You can use http://cron-job.org to ping your Heroku app.
