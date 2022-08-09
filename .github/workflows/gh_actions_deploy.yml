@@ -26,14 +26,14 @@ jobs:
        - name: "Clone Repository"
          continue-on-error: true
          run: |
-           git clone https://${{ secrets.GIT_NAME }}:${{ secrets.GIT_TOKEN }}@${{ secrets.BOT_REPO }} telerepo
+           git clone https://${{ secrets.GIT_NAME }}:${{ secrets.GIT_TOKEN }}@${{ secrets.BOT_REPO }} reflection-mirror
        - name: "Running Reflection-Mirror Server"
          timeout-minutes: 350
          continue-on-error: true
          run: |
-           cd telerepo
-           docker build . -t z-mirror
-           docker run --env CONFIG_FILE_URL=${{ secrets.CONFIG_FILE_URL }} Reflection-mirror
+           cd reflection-mirror
+           docker build . -t reflection-mirror
+           docker run --env CONFIG_FILE_URL=${{ secrets.CONFIG_FILE_URL }} reflection-mirror
        - name: "Re-Run Reflection-Mirror Server"
          continue-on-error: true
          run: |
