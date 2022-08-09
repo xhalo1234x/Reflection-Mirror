@@ -3,16 +3,22 @@ For Now Only Heroku Code There in Future I will add master branch too
 
 # Features:
 
-## Modified By ToxyTech
-- BOT PM
-- LOGS CHANNEL
-- ELAPSED TIME
-- ENGINES
-- Force Sub to channel
-- DECORATIONS 
-- APPDRIVE,.....etc., Features That I can't Remember.Check In Config.env
-- Stable Refresh, Stats and close buttons
-## By Anas
+## By [ToxyTech](https://github.com/dp0148755)
+- Mirror logs
+- Leech logs
+- Source link button
+- Sending Leeched files and Mirror links in user's PM
+- Appdrive Support
+- Megasdkrest Client implimentation
+- Change commands directly from config.env
+- Auto Delete All Bot Related Message in AUTO_DELETE_UPLOAD_MESSAGE_DURATION duration
+- View File in PM button
+- Engine stats in status
+- Statistics,Refresh,Close button in status
+- Heroku Dyno info in stats
+- 4 GB upload for Premium users
+- And many more little changes can't remember Check config.env
+## From Other Repositories
 - qBittorrent
 - Select files from Torrent before downloading using qbittorrent
 - Leech (splitting, thumbnail for each user, setting as document or as media for each user)
@@ -41,8 +47,6 @@ For Now Only Heroku Code There in Future I will add master branch too
 - Extensions Filter for the files to be uploaded/cloned
 - Incomplete task notifier to get incomplete task messages after restart, works with database.
 - Many bugs have been fixed
-
-## From Other Repositories
 - Mirror direct download links, Torrent, and Telegram files to Google Drive
 - Mirror Mega.nz links to Google Drive
 - Copy files from someone's Drive to your Drive (Using Autorclone)
@@ -488,3 +492,9 @@ To Clone or Leech  link follow these steps:
 4. From this you have to paste value for **CRYPT** in config.env file.
 
 -----
+
+## Credits
+
+P.s - Credit goes to all original developers of python, pyrogram, linux, heroku, mirror bots, leech bots, Mega, megasdkrest, sql database, google drive, telegram, and everything used in this project,
+
+  #### Main Credit - [Anas](https://github.com/anasty17/mirror-leech-telegram-bot)
