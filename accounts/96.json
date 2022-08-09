@@ -1,0 +1,12 @@
+{
+  "type": "service_account",
+  "project_id": "dipesh-tech",
+  "private_key_id": "1c561b555eff9e3d2d4a7e450640565f7c34d6b0",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCLR7GRlDDsuPgQ\nM/PDQ5aN3z2xJDCKAaX22aXYPlCIKOlUdLykSO+4xfmr381aE4ptxqQeK1x2X8Zx\nqMBtEBEmgEnaXi1XGHWiubUmb5b9X3G13HOLzOOzoCy4Wcm68YDT+JHGfu1VmAwT\n1DT/tCjxYKXIg5driRadBSPXVUurYraLCmHuP12YxzweJSANugfPZsPeoBhCE5bq\nXlXKz8etW+YS7txwBJokzMdXYEIR6ZJ3Ehp9mSfQJImEgHf0eNi1bThpMKvaehyf\nreM47eEhodKVLu2+mkfByfexn3pi3W06pPsq43Ua+SNVR13rRm+UvraIDGk9VZ27\nO8vSZMrjAgMBAAECggEAHU33WXcBmD0OzHHx3uqwmacX1taTc+YG4lpG36m0zgE1\nnrR1IGfMMGdPMc+D6GjmHlTGISbkbG+YVD+6RPg1c5FYeJ6KEaIu1g8Ww0CFV0gm\np6n7kbWJTzjrT9psbG31uiO5oDcCfpjgKafjgs2IM8ku+HJfgJu2a1EyilMC+csa\ntkfrhpy13VxYqwIBRVAOQkvH90q2wVT9pFVQT6dQUEUhExB4RiZs2SjHCbIP3Vnw\ntnnX+1xDFOdqcL61DpgkyGFmac21OJFVXJHPT3c4tIFGTxLqBsiKUNt8jHeS0GuG\nHnpEJdAukIm28U4dl4xrXGra9hAAMUomHkRpqDok0QKBgQDDORYSD9YgrLNfDj75\njJRsm93a/8K5uljajEzMPYkVmsF6IRUSvpKSMoTdTdAkGqnQsFfDeuH34XHA/17M\n28R1f1QrtHeEz8E1e+ZNLDE0O4OQx9Yvp4eXb208KQxfegaHzU/MnUv4TP6YVLda\nBEbWLk2te+0jbER5uiMWslafawKBgQC2pA7Tv5aCq+lGD+e0addSygt1IbmhN3mz\nhjU+04Q46/qMK78aWU1KNufyAwHpzr4hmpGZP6Shz2y/a4Ijc4FAR6ONYTtaIQva\n3qgxre57x5QKSOVkoOSWtmWeLqjXEjv5uBuGN9Aa+DEGHBza7zkGKPeSmdCf2qPz\nAIxag3o4aQKBgDPvjPKTKfkZWMLSDGjhQF9AfB4V6pz0eUzzBD9Vo5GO0SgHgw6w\nilfAft5NJDFmsoSlVUPY/iKu5E9e4L6JPNOxYxgZc65ugs0SwCsJtbFan961e0LE\nQ+tCpoHZvcPst64LLc6Wji5pdVXbO8gD2UCDowCjNmw1EmZ74XfZS/gvAoGAcTTz\nc9C3TDuelizZo/xO2SQfQfUriIBIUTyI2G5m8JlkbWnYRE7CF5Q85Md0ciYRt+aF\nBQZr11goweWzfqHjpaJCACoajd0Z6gpFGrYCsnqciltwxJTt23UnO4sUYGsO/dRe\nSy1hMrZQPMdEI3hQUj8mZZottEfjg4X9eUUxhrECgYAJCz7UYzuJ/dkoIUUj8cbe\nQ75XM56fCkxrvlHcAWCYr/wkiErskPmJR1clgRGSQ/Ma3UhmpuiP5uuqmDjNxlDj\nNZZvYLWwCl+E34VC5AaAb2WAc1EJEoOokfChezfGO8U67hNYK6lzYzDISY0O9qwD\nKGvNtTCCE58JZd0gx20zlA==\n-----END PRIVATE KEY-----\n",
+  "client_email": "mfc-r194zsxfbp7z9as2rikaszacf7@dipesh-tech.iam.gserviceaccount.com",
+  "client_id": "112719808084666907728",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/mfc-r194zsxfbp7z9as2rikaszacf7%40dipesh-tech.iam.gserviceaccount.com"
+}
