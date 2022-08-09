@@ -79,16 +79,17 @@ This is a Telegram Bot written in Python for mirroring files on the Internet to 
 
 - Clone this repo:
 ```
-- Clone this repo:
-```
 git clone https://github.com/Reflection-Mirror/Reflection-Mirror mirrorbot/ && cd mirrorbot
 ```
 - For Debian based distros
 ```
 sudo apt install python3 python3-pip
 ```
-Install Docker by following the [official Docker docs](https://docs.docker.com/engine/install/debian/)
-
+Install Docker by following the [official Docker docs](https://docs.docker.com/engine/install/debian/) or by commands below.
+```
+sudo apt install snapd
+sudo snap install docker
+```
 - For Arch and it's derivatives:
 ```
 sudo pacman -S docker python
@@ -99,7 +100,6 @@ pip3 install -r requirements-cli.txt
 ```
 
 ------
-
 
 ### 2. Setting up config file
 
@@ -264,6 +264,7 @@ sudo docker image prune -a
      - No need to use sudo su, you can also use sudo before each cmd!
 <p><a href="https://youtu.be/IzUG7U7v4U4?t=968"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
 
+```
 ------
 
 ## Deploying on VPS
@@ -279,23 +280,34 @@ sudo docker container prune
 sudo docker image prune -a
 ```
 4. Check the number of processing units of your machine with `nproc` cmd and times it by 4, then edit `AsyncIOThreadsCount` in qBittorrent.conf.
-5. You can add `CONFIG_FILE_URL` variable using docker and docker-compose, google it.
+5. Use `anasty17/mltb:arm64` for oracle or arm64/v8.
+   - Tutorial Video for Deploying on Oracle VPS:
+     - Thanks to [Wiszky](https://github.com/vishnoe115)
+     - No need to use sudo su, you can also use sudo before each cmd!
+<p><a href="https://youtu.be/IzUG7U7v4U4?t=968"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
 
 ------
 
 ### Deploying on VPS Using Docker
 
-- Start Docker daemon (SKIP if already running):
+- Start Docker daemon (skip if already running), if installed by snap then use 2nd command:
 ```
 sudo dockerd
 ```
+```
+sudo snap start docker
+```
+- **Note**: If not started or not starting, run the command below then try to start.
+```
+sudo apt install docker.io
+```
 - Build Docker image:
 ```
-sudo docker build . -t mirror-bot
+sudo docker build . -t dp_mirror
 ```
 - Run the image:
 ```
-sudo docker run -p 80:80 mirror-bot
+sudo docker run -p 80:80 dp_mirror
 ```
 - To stop the image:
 ```
@@ -309,7 +321,7 @@ sudo docker stop id
 
 ### Deploying on VPS Using docker-compose
 
-**NOTE**: If you want to use port other than 80, change it in [docker-compose.yml](https://github.com/anasty17/mirror-leech-telegram-bot/blob/master/docker-compose.yml) also.
+**NOTE**: If you want to use port other than 80, change it in [docker-compose.yml](https://github.com/Dawn-India/Z-Mirror/blob/master/docker-compose.yml) also.
 
 ```
 sudo apt install docker-compose
@@ -334,7 +346,6 @@ sudo docker-compose start
 <p><a href="https://youtu.be/c8_TU1sPK08"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
 
 ------
-
 
 ## Deploying on Heroku
 <p><a href="https://github.com/Reflection-Mirror/Reflection-Mirror/tree/heroku"> <img src="https://img.shields.io/badge/Deploy%20Guide-blueviolet?style=for-the-badge&logo=heroku" width="170""/></a></p>
