@@ -12,6 +12,7 @@ This is a Telegram Bot written in Python for mirroring files on the Internet to 
 - Change commands directly from config.env
 - Auto Delete All Bot Related Message in AUTO_DELETE_UPLOAD_MESSAGE_DURATION duration
 - View File in PM button
+- Ability to Switch On/Off Mirror/Clone/Leech Feature from config.env
 - Engine stats in status
 - Statistics,Refresh,Close button in status
 - Heroku Dyno info in stats
