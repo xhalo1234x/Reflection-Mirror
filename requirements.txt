@@ -5,6 +5,7 @@ aria2p
 asgiref
 asyncio
 attrdict
+mediainfo
 beautifulsoup4
 bencode.py
 bencoding
