@@ -264,28 +264,6 @@ sudo docker image prune -a
      - No need to use sudo su, you can also use sudo before each cmd!
 <p><a href="https://youtu.be/IzUG7U7v4U4?t=968"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
 
-```
-------
-
-## Deploying on VPS
-
-**IMPORTANT NOTES**:
-1. You must set `SERVER_PORT` variable to `80` or any other port you want to use.
-2. To clear the container (this will not affect on the image):
-```
-sudo docker container prune
-```
-3. To delete the images:
-```
-sudo docker image prune -a
-```
-4. Check the number of processing units of your machine with `nproc` cmd and times it by 4, then edit `AsyncIOThreadsCount` in qBittorrent.conf.
-5. Use `anasty17/mltb:arm64` for oracle or arm64/v8.
-   - Tutorial Video for Deploying on Oracle VPS:
-     - Thanks to [Wiszky](https://github.com/vishnoe115)
-     - No need to use sudo su, you can also use sudo before each cmd!
-<p><a href="https://youtu.be/IzUG7U7v4U4?t=968"> <img src="https://img.shields.io/badge/See%20Video-black?style=for-the-badge&logo=YouTube" width="160""/></a></p>
-
 ------
 
 ### Deploying on VPS Using Docker
@@ -357,6 +335,7 @@ sudo docker-compose start
 ## Bot commands to be set in [@BotFather](https://t.me/BotFather)
 
 ```
+start - Auth Stats
 mirror - Mirror
 zipmirror - Mirror and upload as zip
 unzipmirror - Mirror and extract files
@@ -497,7 +476,7 @@ python3 add_to_team_drive.py -d SharedTeamDriveSrcID
 **2. Using Heroku PostgreSQL**
 <p><a href="https://dev.to/prisma/how-to-setup-a-free-postgresql-database-on-heroku-1dc1"> <img src="https://img.shields.io/badge/See%20Dev.to-black?style=for-the-badge&logo=dev.to" width="160""/></a></p>
 
-**3. Using ElephantSQL**
+**3. Using ElephantSQL** (Recommended)
 - Go to [elephantsql](https://elephantsql.com) and create account
 - Hit `Create New Instance`
 - Follow the further instructions in the screen
@@ -542,9 +521,9 @@ Where host is the name of extractor (eg. instagram, Twitch). Multiple accounts o
 
 -----
 
-## Any Cookies
-To Clone or Leech  link follow these steps:
-1. Login/Register to that website.
+## Gdtot Cookies
+To Clone or Leech gdtot link follow these steps:
+1. Login/Register to [gdtot](https://new.gdtot.top).
 2. Copy this script and paste it in browser address bar.
    - **Note**: After pasting it check at the beginning of the script in broswer address bar if `javascript:` exists or not, if not so write it as shown below.
    ```javascript
