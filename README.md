@@ -2,7 +2,7 @@ This is a Telegram Bot written in Python for mirroring files on the Internet to 
 
 # Features:
 
-## By [ToxyTech](https://github.com/dp0148755)
+## By [ToxyTech](https://t.me/toxytech)
 - Mirror logs
 - Leech logs
 - Source link button
