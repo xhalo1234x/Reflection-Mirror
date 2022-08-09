@@ -34,7 +34,7 @@ jobs:
            cd telerepo
            docker build . -t z-mirror
            docker run --env CONFIG_FILE_URL=${{ secrets.CONFIG_FILE_URL }} Reflection-mirror
-       - name: "Re-Run Z-Mirror Server"
+       - name: "Re-Run Reflection-Mirror Server"
          continue-on-error: true
          run: |
               git clone https://github.com/${GITHUB_REPOSITORY} loop
@@ -42,4 +42,4 @@ jobs:
               echo $(date -u +%T%P) >> loop.txt
               git add loop.txt
               git commit -m "Reflection-Mirror : Re-Run $(date -u +%D-%T%P)"
-              git push -q https://${{ secrets.GIT_TOKEN }}@github.com/${GITHUB_REPOSITORY} HEAD:Z-Mirror
+              git push -q https://${{ secrets.GIT_TOKEN }}@github.com/${GITHUB_REPOSITORY} HEAD:Reflection-Mirror
