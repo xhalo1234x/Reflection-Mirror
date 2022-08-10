@@ -29,16 +29,16 @@ PAGE_NO = 1
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Uploading...📤"
-    STATUS_DOWNLOADING = "Downloading...📥"
-    STATUS_CLONING = "Cloning...♻️"
-    STATUS_WAITING = "Queued...💤"
-    STATUS_PAUSED = "Paused...⛔️"
-    STATUS_ARCHIVING = "Archiving...🔐"
-    STATUS_EXTRACTING = "Extracting...📂"
-    STATUS_SPLITTING = "Splitting...✂️"
-    STATUS_CHECKING = "CheckingUp...📝"
-    STATUS_SEEDING = "Seeding...🌧"
+    STATUS_UPLOADING = "Uploading"
+    STATUS_DOWNLOADING = "Downloading"
+    STATUS_CLONING = "Cloning"
+    STATUS_WAITING = "Queued"
+    STATUS_PAUSED = "Paused"
+    STATUS_ARCHIVING = "Archiving"
+    STATUS_EXTRACTING = "Extracting"
+    STATUS_SPLITTING = "Splitting"
+    STATUS_CHECKING = "CheckingUp"
+    STATUS_SEEDING = "Seeding"
 
 class EngineStatus:
     STATUS_ARIA = "Aria2c v1.35.0"
@@ -372,13 +372,13 @@ def bot_sys_stats():
     cpuUsage = cpu_percent(interval=1)
     return f"""
 {TITLE_NAME} BOT STATS
-CPU:  {progress_bar(cpuUsage)} {cpuUsage}%
-RAM: {progress_bar(mem_p)} {mem_p}%
-DISK: {progress_bar(disk)} {disk}%
-T: {disk_t}GB | F: {disk_f}GB
-Working For: {currentTime}
-T-DL: {recv} | T-UL: {sent}
-Made with ❤️ by Dipesh
+Tᴀsᴋs: {tasks}
+Cᴘᴜ: {progress_bar(cpu)} {cpu}%
+Rᴀᴍ: {progress_bar(mem)} {mem}%
+Dɪsᴋ: {progress_bar(disk)} {disk}%
+Sᴇɴᴛ: {sent} | Rᴇᴄᴠ: {recv}
+DLs: {num_active} | ULs: {num_upload} | Sᴇᴇᴅɪɴɢ: {num_seeding}
+Zɪᴘ: {num_zip} | Uɴᴢɪᴘ: {num_unzip} | Sᴘʟɪᴛ: {num_split}
 """
     
 dispatcher.add_handler(
