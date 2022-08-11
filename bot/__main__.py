@@ -372,8 +372,6 @@ if SET_BOT_COMMANDS:
 
 
 def main():
-    if SET_BOT_COMMANDS:
-        bot.set_my_commands(botcmds)
     start_cleanup()
     notifier_dict = False
     if INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
