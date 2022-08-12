@@ -1,4 +1,3 @@
-
 from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig
 from time import sleep
 from qbittorrentapi import NotFound404Error, Client as qbClient
@@ -8,6 +7,8 @@ from flask import Flask, request
 from web.nodes import make_tree
 
 app = Flask(__name__)
+
+aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 
 basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     handlers=[FileHandler('log.txt'), StreamHandler()],
@@ -22,7 +23,7 @@ page = """
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Torrent File Selector</title>
-    <link rel="icon" href="https://telegra.ph/file/1a6ad157f55bc42b548df.png" type="image/jpg">
+    <link rel="icon" href="https://telegra.ph/file/43af672249c94053356c7.jpg" type="image/jpg">
     <script
       src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
       integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
@@ -223,16 +224,16 @@ function s_validate() {
     <header>
       <div class="brand">
         <img
-          src="https://telegra.ph/file/1a6ad157f55bc42b548df.png"
+          src="https://telegra.ph/file/43af672249c94053356c7.jpg"
           alt="logo"
         />
-        <a href="https://t.me/krn2701">
-          <h2 class="name">Bittorrent</h2>
+        <a href="https://t.me/anas_tayyar">
+          <h2 class="name">Bittorrent Selection</h2>
         </a>
       </div>
       <div class="social">
-        <a href="https://github.com/codewithweeb/mirror-with-weeb"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/krn2701"><i class="fab fa-telegram"></i></a>
+        <a href="https://www.github.com/anasty17/mirror-leech-telegram-bot"><i class="fab fa-github"></i></a>
+        <a href="https://t.me/anas_tayyar"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <div id="sticks">
@@ -419,7 +420,7 @@ code_page = """
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Torrent Code Checker</title>
-    <link rel="icon" href="https://telegra.ph/file/1a6ad157f55bc42b548df.png" type="image/jpg">
+    <link rel="icon" href="https://telegra.ph/file/43af672249c94053356c7.jpg" type="image/jpg">
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -615,16 +616,16 @@ section span{
     <header>
       <div class="brand">
         <img
-          src="https://telegra.ph/file/1a6ad157f55bc42b548df.png.png"
+          src="https://telegra.ph/file/43af672249c94053356c7.jpg"
           alt="logo"
         />
-        <a href="https://t.me/krn2701">
-          <h2 class="name">Bittorrent</h2>
+        <a href="https://t.me/anas_tayyar">
+          <h2 class="name">Bittorrent Selection</h2>
         </a>
       </div>
       <div class="social">
-        <a href="https://github.com/codewithweeb/mirror-with-weeb"><i class="fab fa-github"></i></a>
-        <a href="https://t.me/krn2701"><i class="fab fa-telegram"></i></a>
+        <a href="https://www.github.com/anasty17/mirror-leech-telegram-bot"><i class="fab fa-github"></i></a>
+        <a href="https://t.me/anas_tayyar"><i class="fab fa-telegram"></i></a>
       </div>
     </header>
     <section>
@@ -712,20 +713,17 @@ def list_torrent_contents(id_):
         cont = make_tree(res)
         client.auth_log_out()
     else:
-        aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
         res = aria2.client.get_files(id_)
         cont = make_tree(res, True)
     return page.replace("{My_content}", cont[0]).replace("{form_url}", f"/app/files/{id_}?pin_code={pincode}")
-
 
 @app.route('/app/files/<string:id_>', methods=['POST'])
 def set_priority(id_):
 
     data = dict(request.form)
 
-    resume = ""
-
     if len(id_) > 20:
+        resume = ""
         pause = ""
 
         for i, value in data.items():
@@ -767,7 +765,6 @@ def set_priority(id_):
 
         resume = resume.strip(",")
 
-        aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
         res = aria2.client.change_option(id_, {'select-file': resume})
         if res == "OK":
             LOGGER.info(f"Verified! Gid: {id_}")
@@ -777,7 +774,7 @@ def set_priority(id_):
 
 @app.route('/')
 def homepage():
-    return "<h1>See mirror-with-weeb <a href='https://github.com/codewithweeb/mirror-with-weeb'>@GitHub</a> By <a href='https://github.com/codewithweeb'>Code With Weeb</a></h1>"
+    return "<h1>See mirror-leech-telegram-bot <a href='https://www.github.com/anasty17/mirror-leech-telegram-bot'>@GitHub</a> By <a href='https://github.com/anasty17'>Anas</a></h1>"
 
 @app.errorhandler(Exception)
 def page_not_found(e):

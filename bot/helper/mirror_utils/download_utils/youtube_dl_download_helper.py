@@ -6,11 +6,9 @@ from threading import RLock
 from time import time
 from re import search as re_search
 
-from bot import download_dict_lock, download_dict, STORAGE_THRESHOLD
-from bot.helper.ext_utils.bot_utils import get_readable_file_size
+from bot import download_dict_lock, download_dict
 from bot.helper.telegram_helper.message_utils import sendStatusMessage
 from ..status_utils.youtube_dl_download_status import YoutubeDLDownloadStatus
-from bot.helper.ext_utils.fs_utils import check_storage_threshold
 
 LOGGER = getLogger(__name__)
 
@@ -142,10 +140,7 @@ class YoutubeDLHelper:
             ext = realName.split('.')[-1]
             if name == "":
                 newname = realName.split(f" [{result['id'].replace('*', '_')}]")
-                if len(newname) > 1:
-                    self.name = newname[0] + '.' + ext
-                else:
-                    self.name = newname[0]
+                self.name = newname[0] + '.' + ext if len(newname) > 1 else newname[0]
             else:
                 self.name = f"{name}.{ext}"
 
@@ -173,22 +168,13 @@ class YoutubeDLHelper:
         if qual.startswith('ba/b'):
             audio_info = qual.split('-')
             qual = audio_info[0]
-            if len(audio_info) == 2:
-                rate = audio_info[1]
-            else:
-                rate = 320
-            self.opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': f'{rate}'}]
+            rate = audio_info[1] if len(audio_info) == 2 else '320'
+            self.opts['postprocessors'] = [{'key': 'FFmpegExtractAudio', 'preferredcodec': 'mp3', 'preferredquality': rate}]
         self.opts['format'] = qual
         LOGGER.info(f"Downloading with YT-DLP: {link}")
         self.extractMetaData(link, name, args)
         if self.__is_cancelled:
             return
-        if STORAGE_THRESHOLD is not None:
-            acpt = check_storage_threshold(self.size, self.__listener.isZip)
-            if not acpt:
-                msg = f'You must leave {STORAGE_THRESHOLD}GB free storage.'
-                msg += f'\nYour File/Folder size is {get_readable_file_size(self.size)}'
-                return self.__onDownloadError(msg)
         if self.is_playlist:
             self.opts['outtmpl'] = f"{path}/{self.name}/%(title)s.%(ext)s"
         elif args is None:

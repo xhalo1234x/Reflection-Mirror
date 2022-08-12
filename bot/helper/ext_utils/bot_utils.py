@@ -12,7 +12,6 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot import FINISHED_PROGRESS_STR, UN_FINISHED_PROGRESS_STR, download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, DOWNLOAD_DIR, WEB_PINCODE, BASE_URL
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
-import shutil
 import psutil
 from telegram.error import RetryAfter
 from telegram.ext import CallbackQueryHandler
@@ -29,16 +28,17 @@ PAGE_NO = 1
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Uploading"
-    STATUS_DOWNLOADING = "Downloading"
-    STATUS_CLONING = "Cloning"
-    STATUS_WAITING = "Queued"
-    STATUS_PAUSED = "Paused"
-    STATUS_ARCHIVING = "Archiving"
-    STATUS_EXTRACTING = "Extracting"
-    STATUS_SPLITTING = "Splitting"
-    STATUS_CHECKING = "CheckingUp"
-    STATUS_SEEDING = "Seeding"
+    STATUS_UPLOADING = "Uploading...📤"
+    STATUS_DOWNLOADING = "Downloading...📥"
+    STATUS_CLONING = "Cloning...♻️"
+    STATUS_WAITING = "Queued...💤"
+    STATUS_PAUSED = "Paused...⛔️"
+    STATUS_ARCHIVING = "Archiving...🔐"
+    STATUS_EXTRACTING = "Extracting...📂"
+    STATUS_SPLITTING = "Splitting...✂️"
+    STATUS_CHECKING = "CheckingUp...📝"
+    STATUS_SEEDING = "Seeding...🌧"
+
 
 class EngineStatus:
     STATUS_ARIA = "Aria2c v1.35.0"
@@ -51,7 +51,7 @@ class EngineStatus:
     STATUS_SPLIT = "FFmpeg v2.9.1"
     STATUS_ZIP = "p7zip v16.02"
 
-    
+
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
 PROGRESS_MAX_SIZE = 100 // 9
@@ -75,6 +75,7 @@ class setInterval:
     def cancel(self):
         self.stopEvent.set()
 
+
 def get_readable_file_size(size_in_bytes) -> str:
     if size_in_bytes is None:
         return '0B'
@@ -87,13 +88,15 @@ def get_readable_file_size(size_in_bytes) -> str:
     except IndexError:
         return 'File too large'
 
+
 def getDownloadByGid(gid):
     with download_dict_lock:
         for dl in list(download_dict.values()):
-            status = dl.status()
+            dl.status()
             if dl.gid() == gid:
                 return dl
     return None
+
 
 def getAllDownload(req_status: str):
     with download_dict_lock:
@@ -102,6 +105,7 @@ def getAllDownload(req_status: str):
             if req_status in ['all', status]:
                 return dl
     return None
+
 
 def bt_selection_buttons(id_: str):
     if len(id_) > 20:
@@ -121,9 +125,12 @@ def bt_selection_buttons(id_: str):
         buttons.buildbutton("Select Files", f"{BASE_URL}/app/files/{id_}")
         buttons.sbutton("Pincode", f"btsel pin {gid} {pincode}")
     else:
-        buttons.buildbutton("Select Files", f"{BASE_URL}/app/files/{id_}?pin_code={pincode}")
+        buttons.buildbutton(
+            "Select Files",
+            f"{BASE_URL}/app/files/{id_}?pin_code={pincode}")
     buttons.sbutton("Done Selecting", f"btsel done {gid} {id_}")
     return InlineKeyboardMarkup(buttons.build_menu(2))
+
 
 def get_progress_bar_string(status):
     completed = status.processed_bytes() / 8
@@ -139,18 +146,20 @@ def get_progress_bar_string(status):
     p_str = f"「{p_str}」"
     return p_str
 
+
 def progress_bar(percentage):
     p_used = '⬢'
     p_total = '⬡'
     if isinstance(percentage, str):
         return 'NaN'
     try:
-        percentage=int(percentage)
-    except:
+        percentage = int(percentage)
+    except BaseException:
         percentage = 0
     return ''.join(
         p_used if i <= percentage // 10 else p_total for i in range(1, 11)
     )
+
 
 def get_readable_message():
     with download_dict_lock:
@@ -158,14 +167,17 @@ def get_readable_message():
         if STATUS_LIMIT is not None:
             tasks = len(download_dict)
             global pages
-            pages = ceil(tasks/STATUS_LIMIT)
+            pages = ceil(tasks / STATUS_LIMIT)
             if PAGE_NO > pages and pages != 0:
                 globals()['COUNT'] -= STATUS_LIMIT
                 globals()['PAGE_NO'] -= 1
-        for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
+        for index, download in enumerate(
+                list(download_dict.values())[COUNT:], start=1):
             msg += f"<b>Name:</b> <code>{escape(str(download.name()))}</code>"
             msg += f"\n<b>╭Status:</b> <i>{download.status()}</i>"
-            if download.status() not in [MirrorStatus.STATUS_SPLITTING, MirrorStatus.STATUS_SEEDING]:
+            if download.status() not in [
+                    MirrorStatus.STATUS_SPLITTING,
+                    MirrorStatus.STATUS_SEEDING]:
                 msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
                 if download.status() in [MirrorStatus.STATUS_DOWNLOADING,
                                          MirrorStatus.STATUS_WAITING,
@@ -187,22 +199,22 @@ def get_readable_message():
                 try:
                     msg += f"\n<b>├Seeders:</b> {download.aria_download().num_seeders}" \
                            f" | <b>🧲 Peers:</b> {download.aria_download().connections}"
-                except:
+                except BaseException:
                     pass
                 try:
                     msg += f"\n<b>├Seeders:</b> {download.torrent_info().num_seeds}" \
                            f" | <b>🧲 Leechers:</b> {download.torrent_info().num_leechs}"
-                except:
+                except BaseException:
                     pass
                 if download.message.chat.type != 'private':
                     try:
                         chatid = str(download.message.chat.id)[4:]
                         msg += f'\n<b>├Source: </b><a href="https://t.me/c/{chatid}/{download.message.message_id}">{download.message.from_user.first_name}</a> | <b>Id :</b> <code>{download.message.from_user.id}</code>'
-                    except:
+                    except BaseException:
                         pass
                 else:
                     msg += f'\n<b>├User:</b> ️<code>{download.message.from_user.first_name}</code> | <b>Id:</b> <code>{download.message.from_user.id}</code>'
-            
+
             elif download.status() == MirrorStatus.STATUS_SEEDING:
                 msg += f"\n<b>├Size: </b>{download.size()}"
                 msg += f"\n<b>├Engine:</b> <code>qBittorrent v4.4.2</code>"
@@ -239,13 +251,13 @@ def get_readable_message():
                 elif 'MB/s' in spd:
                     upspeed_bytes += float(spd.split('M')[0]) * 1048576
         bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>🔺 UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
-        
+
         buttons = ButtonMaker()
         # buttons.sbutton("Refresh", "status refresh")
         buttons.sbutton("📈", str(THREE))
       #  buttons.sbutton("Close", "status close")
         sbutton = InlineKeyboardMarkup(buttons.build_menu(3))
-        
+
         if STATUS_LIMIT is not None and tasks > STATUS_LIMIT:
             msg += f"<b>Tasks:</b> {tasks}\n"
             buttons = ButtonMaker()
@@ -257,6 +269,7 @@ def get_readable_message():
             button = InlineKeyboardMarkup(buttons.build_menu(3))
             return msg + bmsg, button
         return msg + bmsg, sbutton
+
 
 def turn(data):
     try:
@@ -277,8 +290,9 @@ def turn(data):
                     COUNT -= STATUS_LIMIT
                     PAGE_NO -= 1
         return True
-    except:
+    except BaseException:
         return False
+
 
 def get_readable_time(seconds: int) -> str:
     result = ''
@@ -298,23 +312,29 @@ def get_readable_time(seconds: int) -> str:
     result += f'{seconds}s'
     return result
 
+
 def is_url(url: str):
     url = re_findall(URL_REGEX, url)
     return bool(url)
 
+
 def is_gdrive_link(url: str):
     return "drive.google.com" in url
+
 
 def is_gdtot_link(url: str):
     url = re_match(r'https?://.+\.gdtot\.\S+', url)
     return bool(url)
 
+
 def is_appdrive_link(url: str):
-    url = re_match(r'https?://(?:\S*\.)?(?:appdrive|driveapp)\.in/\S+', url)
+    url = re_match(r'https?://(?:\S*\.)?(?:appdrive|driveapp)\.in*/\S+', url)
     return bool(url)
+
 
 def is_mega_link(url: str):
     return "mega.nz" in url or "mega.co.nz" in url
+
 
 def get_mega_link_type(url: str):
     if "folder" in url:
@@ -325,9 +345,11 @@ def get_mega_link_type(url: str):
         return "folder"
     return "file"
 
+
 def is_magnet(url: str):
     magnet = re_findall(MAGNET_REGEX, url)
     return bool(magnet)
+
 
 def new_thread(fn):
     """To use as decorator to make a function call threaded.
@@ -341,25 +363,35 @@ def new_thread(fn):
 
     return wrapper
 
+
 def get_content_type(link: str) -> str:
     try:
-        res = rhead(link, allow_redirects=True, timeout=5, headers = {'user-agent': 'Wget/1.12'})
+        res = rhead(
+            link,
+            allow_redirects=True,
+            timeout=5,
+            headers={
+                'user-agent': 'Wget/1.12'})
         content_type = res.headers.get('content-type')
-    except:
+    except BaseException:
         try:
             res = urlopen(link, timeout=5)
             info = res.info()
             content_type = info.get_content_type()
-        except:
+        except BaseException:
             content_type = None
     return content_type
 
 
 ONE, TWO, THREE = range(3)
+
+
 def pop_up_stats(update, context):
     query = update.callback_query
     stats = bot_sys_stats()
     query.answer(text=stats, show_alert=True)
+
+
 def bot_sys_stats():
     currentTime = get_readable_time(time() - botStartTime)
     total, used, free, disk = disk_usage('/')
@@ -372,15 +404,16 @@ def bot_sys_stats():
     cpuUsage = cpu_percent(interval=1)
     return f"""
 {TITLE_NAME} BOT STATS
-Tᴀsᴋs: {tasks}
-Cᴘᴜ: {progress_bar(cpu)} {cpu}%
-Rᴀᴍ: {progress_bar(mem)} {mem}%
-Dɪsᴋ: {progress_bar(disk)} {disk}%
-Sᴇɴᴛ: {sent} | Rᴇᴄᴠ: {recv}
-DLs: {num_active} | ULs: {num_upload} | Sᴇᴇᴅɪɴɢ: {num_seeding}
-Zɪᴘ: {num_zip} | Uɴᴢɪᴘ: {num_unzip} | Sᴘʟɪᴛ: {num_split}
+CPU:  {progress_bar(cpuUsage)} {cpuUsage}%
+RAM: {progress_bar(mem_p)} {mem_p}%
+DISK: {progress_bar(disk)} {disk}%
+T: {disk_t}GB | F: {disk_f}GB
+Working For: {currentTime}
+T-DL: {recv} | T-UL: {sent}
+Made with ❤️ by Dipesh
 """
-    
+
+
 dispatcher.add_handler(
     CallbackQueryHandler(pop_up_stats, pattern="^" + str(THREE) + "$")
 )

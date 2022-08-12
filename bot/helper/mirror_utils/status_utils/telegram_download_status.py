@@ -10,7 +10,6 @@ class TelegramDownloadStatus:
     def gid(self):
         return self.__gid
 
-
     def processed_bytes(self):
         return self.__obj.downloaded_bytes
 
@@ -43,9 +42,10 @@ class TelegramDownloadStatus:
 
     def eta(self):
         try:
-            seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
+            seconds = (self.size_raw() - self.processed_bytes()) / \
+                self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except:
+        except BaseException:
             return '-'
 
     def download(self):
