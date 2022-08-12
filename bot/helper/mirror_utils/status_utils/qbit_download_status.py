@@ -102,4 +102,4 @@ class QbDownloadStatus:
         return self.__listener
 
     def eng(self):
-        return EngineStatus.STATUS_QBfrom
+        return EngineStatus.STATUS_QB
