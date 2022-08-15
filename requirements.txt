@@ -13,6 +13,7 @@ cfscrape
 cloudscraper
 feedparser
 flask
+megasdkrest
 gc-python-utils
 google-api-python-client
 google-auth-httplib2
