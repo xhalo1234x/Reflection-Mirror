@@ -8,11 +8,12 @@ This is a Telegram Bot written in Python for mirroring files on the Internet to 
 - Leech logs
 - Source link button
 - Sending Leeched files and Mirror links in user's PM
-- Appdrive Support
+- Appdrive/GDToT/AppDrive/DriveApp/GDFlix/DriveBit/DriveLinks/DrivePro/DriveAce/DriveSharer/HubDrive/DriveHub/KatDrive/Kolop/DriveFire/SharerPw Support
 - Megasdkrest Client implimentation
 - Change commands directly from config.env
 - Auto Delete All Bot Related Message in AUTO_DELETE_UPLOAD_MESSAGE_DURATION duration
-- View File in PM button
+- View File in PM button 
+- Join Log Channel Button
 - Ability to Switch On/Off Mirror/Clone/Leech Feature from config.env
 - Engine stats in status
 - Statistics,Refresh,Close button in status
