@@ -29,7 +29,7 @@ class GdDownloadStatus:
     def progress_raw(self):
         try:
             return self.__obj.processed_bytes / self.__size * 100
-        except BaseException:
+        except:
             return 0
 
     def progress(self):
@@ -46,10 +46,9 @@ class GdDownloadStatus:
 
     def eta(self):
         try:
-            seconds = (self.__size - self.__obj.processed_bytes) / \
-                self.speed_raw()
+            seconds = (self.__size - self.__obj.processed_bytes) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except BaseException:
+        except:
             return '-'
 
     def download(self):

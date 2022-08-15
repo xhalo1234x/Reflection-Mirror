@@ -4,13 +4,13 @@ from telegram import InlineKeyboardMarkup
 from time import sleep
 from re import split as re_split
 
-from bot import DOWNLOAD_DIR, dispatcher
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage
-from bot.helper.telegram_helper import button_build
+from bot import DOWNLOAD_DIR, dispatcher, BOT_PM, LOGGER, WATCH_ENABLED
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, auto_delete_upload_message
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_url
 from bot.helper.mirror_utils.download_utils.youtube_dl_download_helper import YoutubeDLHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.button_build import ButtonMaker
 from .listener import MirrorLeechListener
 
 listener_dict = {}
@@ -19,6 +19,23 @@ def _ytdl(bot, message, isZip=False, isLeech=False, multi=0):
     mssg = message.text
     user_id = message.from_user.id
     msg_id = message.message_id
+    buttons = ButtonMaker()
+    if BOT_PM and message.chat.type != 'private':
+        try:
+            msg1 = f'Added your Requested link to Download\n'
+            send = bot.sendMessage(message.from_user.id, text=msg1)
+            send.delete()
+        except Exception as e:
+            LOGGER.warning(e)
+            bot_d = bot.get_me()
+            b_uname = bot_d.username
+            uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
+            botstart = f"http://t.me/{b_uname}"
+            buttons.buildbutton("Click Here to Start Me", f"{botstart}")
+            startwarn = f"Dear {uname},\n\n<b>I found that you haven't started me in PM (Private Chat) yet.</b>\n\n" \
+                        f"From now on i will give link and leeched files in PM and log channel only"
+            message = sendMarkup(startwarn, bot, message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            return
 
     link = mssg.split()
     if len(link) > 1:
@@ -80,11 +97,11 @@ def _ytdl(bot, message, isZip=False, isLeech=False, multi=0):
         help_msg += "\n\n<b>NOTE:</b> Add `^` before integer, some values must be integer and some string."
         help_msg += " Like playlist_items:10 works with string so no need to add `^` before the number"
         help_msg += " but playlistend works only with integer so you must add `^` before the number like example above."
-        help_msg += "\n\nCheck all arguments from this <a href='https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L174'>FILE</a>."
+        help_msg += "\n\nCheck all arguments from this <a href='https://github.com/yt-dlp/yt-dlp/blob/a3125791c7a5cdf2c8c025b99788bf686edd1a8a/yt_dlp/YoutubeDL.py#L194'>FILE</a>."
         return sendMessage(help_msg, bot, message)
 
     listener = MirrorLeechListener(bot, message, isZip, isLeech=isLeech, pswd=pswd, tag=tag)
-    buttons = button_build.ButtonMaker()
+    buttons = ButtonMaker()
     best_video = "bv*+ba/b"
     best_audio = "ba/b"
     ydl = YoutubeDLHelper(listener)
@@ -167,7 +184,7 @@ def _ytdl(bot, message, isZip=False, isLeech=False, multi=0):
         Thread(target=_ytdl, args=(bot, nextmsg, isZip, isLeech, multi)).start()
 
 def _qual_subbuttons(task_id, qual, msg):
-    buttons = button_build.ButtonMaker()
+    buttons = ButtonMaker()
     task_info = listener_dict[task_id]
     formats_dict = task_info[6]
     qual_fps_ext = re_split(r'p|-', qual, maxsplit=2)
@@ -197,7 +214,7 @@ def _qual_subbuttons(task_id, qual, msg):
     editMessage(f"Choose Video Bitrate for <b>{qual}</b>:", msg, SUBBUTTONS)
 
 def _audio_subbuttons(task_id, msg, playlist=False):
-    buttons = button_build.ButtonMaker()
+    buttons = ButtonMaker()
     audio_qualities = [64, 128, 320]
     for q in audio_qualities:
         if playlist:
@@ -284,14 +301,26 @@ def ytdlleech(update, context):
 def ytdlZipleech(update, context):
     _ytdl(context.bot, update.message, True, True)
 
-ytdl_handler = CommandHandler(BotCommands.YtdlCommand, ytdl,
-                                filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
-ytdl_zip_handler = CommandHandler(BotCommands.YtdlZipCommand, ytdlZip,
+if WATCH_ENABLED:
+    ytdl_handler = CommandHandler(BotCommands.WatchCommand, ytdl,
                                     filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
-ytdl_leech_handler = CommandHandler(BotCommands.YtdlLeechCommand, ytdlleech,
-                                filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
-ytdl_zip_leech_handler = CommandHandler(BotCommands.YtdlZipLeechCommand, ytdlZipleech,
+    ytdl_zip_handler = CommandHandler(BotCommands.ZipWatchCommand, ytdlZip,
+                                        filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+    ytdl_leech_handler = CommandHandler(BotCommands.LeechWatchCommand, ytdlleech,
                                     filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+    ytdl_zip_leech_handler = CommandHandler(BotCommands.LeechZipWatchCommand, ytdlZipleech,
+                                        filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
+
+else:
+    ytdl_handler = CommandHandler(BotCommands.WatchCommand, ytdl,
+                                    filters=CustomFilters.owner_filter | CustomFilters.authorized_user, run_async=True)
+    ytdl_zip_handler = CommandHandler(BotCommands.ZipWatchCommand, ytdlZip,
+                                        filters=CustomFilters.owner_filter | CustomFilters.authorized_user, run_async=True)
+    ytdl_leech_handler = CommandHandler(BotCommands.LeechWatchCommand, ytdlleech,
+                                    filters=CustomFilters.owner_filter | CustomFilters.authorized_user, run_async=True)
+    ytdl_zip_leech_handler = CommandHandler(BotCommands.LeechZipWatchCommand, ytdlZipleech,
+                                        filters=CustomFilters.owner_filter | CustomFilters.authorized_user, run_async=True)
+
 quality_handler = CallbackQueryHandler(select_format, pattern="qu", run_async=True)
 
 dispatcher.add_handler(ytdl_handler)

@@ -29,7 +29,7 @@ class CloneStatus:
     def progress_raw(self):
         try:
             return self.__obj.transferred_size / self.__size * 100
-        except BaseException:
+        except:
             return 0
 
     def progress(self):
@@ -46,10 +46,9 @@ class CloneStatus:
 
     def eta(self):
         try:
-            seconds = (self.__size - self.__obj.transferred_size) / \
-                self.speed_raw()
+            seconds = (self.__size - self.__obj.transferred_size) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except BaseException:
+        except:
             return '-'
 
     def download(self):

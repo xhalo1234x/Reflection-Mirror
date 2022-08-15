@@ -1,8 +1,6 @@
 from time import time
-
 from bot import aria2, LOGGER
-from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_time, EngineStatus
-
+from bot.helper.ext_utils.bot_utils import MirrorStatus, EngineStatus, get_readable_time
 
 def get_download(gid):
     try:
@@ -19,6 +17,7 @@ class AriaDownloadStatus:
         self.__listener = listener
         self.start_time = 0
         self.message = listener.message
+
 
     def __update(self):
         self.__download = self.__download.live
@@ -50,6 +49,7 @@ class AriaDownloadStatus:
     def name(self):
         self.__update()
         return self.__download.name
+
 
     def size(self):
         return self.__download.total_length_string()
@@ -100,8 +100,7 @@ class AriaDownloadStatus:
         self.__update()
         if self.__download.seeder:
             LOGGER.info(f"Cancelling Seed: {self.name}")
-            self.__listener.onUploadError(
-                f"Seeding stopped with Ratio: {self.ratio()} and Time: {self.seeding_time()}")
+            self.__listener.onUploadError(f"Seeding stopped with Ratio: {self.ratio()} and Time: {self.seeding_time()}")
             aria2.remove([self.__download], force=True, files=True)
         elif len(self.__download.followed_by_ids) != 0:
             LOGGER.info(f"Cancelling Download: {self.name()}")

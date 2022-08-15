@@ -1,3 +1,4 @@
+
 from anytree import NodeMixin
 from re import findall as re_findall
 from os import environ
@@ -5,7 +6,6 @@ from os import environ
 DOWNLOAD_DIR = environ.get('DOWNLOAD_DIR')
 if not DOWNLOAD_DIR.endswith("/"):
     DOWNLOAD_DIR = DOWNLOAD_DIR + '/'
-
 
 class TorNode(NodeMixin):
     def __init__(self, name, is_folder=False, is_file=False, parent=None, size=None, priority=None, file_id=None):
@@ -30,6 +30,7 @@ def qb_get_folders(path):
 def get_folders(path):
     fs = re_findall(DOWNLOAD_DIR + r'[0-9]+/(.+)', path)[0]
     return fs.split('/')
+
 
 def make_tree(res, aria2=False):
     parent = TorNode("Torrent")
