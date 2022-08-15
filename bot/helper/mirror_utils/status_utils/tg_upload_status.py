@@ -8,7 +8,6 @@ class TgUploadStatus:
         self.__gid = gid
         self.message = listener.message
 
-
     def processed_bytes(self):
         return self.__obj.uploaded_bytes
 
@@ -44,7 +43,8 @@ class TgUploadStatus:
 
     def eta(self):
         try:
-            seconds = (self.__size - self.__obj.uploaded_bytes) / self.speed_raw()
+            seconds = (self.__size - self.__obj.uploaded_bytes) / \
+                self.speed_raw()
             return f'{get_readable_time(seconds)}'
         except ZeroDivisionError:
             return '-'

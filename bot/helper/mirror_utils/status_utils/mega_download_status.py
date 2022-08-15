@@ -10,7 +10,6 @@ class MegaDownloadStatus:
     def gid(self):
         return self.__obj.gid
 
-
     def processed_bytes(self):
         return self.__obj.downloaded_bytes
 
@@ -43,13 +42,14 @@ class MegaDownloadStatus:
 
     def eta(self):
         try:
-            seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
+            seconds = (self.size_raw() - self.processed_bytes()) / \
+                self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except:
+        except BaseException:
             return '-'
 
     def download(self):
         return self.__obj
 
     def eng(self):
-        return EngineStatus.STATUS_MEGA
+        return EngineStatus.STATUS_MEGAfrom

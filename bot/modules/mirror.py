@@ -240,30 +240,30 @@ class MirrorListener:
             if self.message.chat.type == 'private':
                 warnmsg = ''
             else:
-                warnmsg = f'<b>This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
+                warnmsg = f'<b>❗ This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
         else:
             warnmsg = ''
         if BOT_PM and self.message.chat.type != 'private':
-            pmwarn = f"<b>I have sent files in PM.</b>\n"
+            pmwarn = f"<b>😉 I have sent files in PM.</b>\n"
         elif self.message.chat.type == 'private':
             pmwarn = ''
         else:
             pmwarn = ''
         if MIRROR_LOGS and self.message.chat.type != 'private':
-            logwarn = f"<b>I have sent files in Mirror Log Channel.(Join Mirror Log channel) </b>\n"
+            logwarn = f"<b>⚠️ I have sent files in Mirror Log Channel.(Join Mirror Log channel) </b>\n"
         elif self.message.chat.type == 'private':
             logwarn = ''
         else:
             logwarn = ''
         if LEECH_LOG and self.message.chat.type != 'private':
-            logleechwarn = f"<b>I have sent files in Leech Log Channel.(Join Leech Log channel) </b>\n"
+            logleechwarn = f"<b>⚠️ I have sent files in Leech Log Channel.(Join Leech Log channel) </b>\n"
         elif self.message.chat.type == 'private':
             logleechwarn = ''
         else:
             logleechwarn = ''
         if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
             DbManger().rm_complete_task(self.message.link)
-        msg = f"<b>╭Name: </b><code>{escape(name)}</code>\n<b>├Size: </b>{size}"
+        msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -293,12 +293,11 @@ class MirrorListener:
                                 buttons.buildbutton(f"🔗 Source Link", source_link)
                     except Exception:
                         pass
-            msg += f'\n<b>├Total Files: </b>{folders}'
+            msg += f'\n<b>├📚 Total Files: </b>{folders}'
             if typ != 0:
-                msg += f'\n<b>├Corrupted Files: </b>{typ}'
-            msg += f'\n<b>├It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
-            msg += f'\n<b>├cc: </b>{self.tag}'
-            msg += f'\n<b>╰Thanks For using {TITLE_NAME}</b>\n'
+                msg += f'\n<b>├💀 Corrupted Files: </b>{typ}'
+            msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+            msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
             if LEECH_LOG:
                 for i in LEECH_LOG:
                     indexmsg = ''
@@ -335,13 +334,12 @@ class MirrorListener:
                     uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                     Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
         else:
-            msg += f'\n<b>├Type: </b>{typ}'
+            msg += f'\n<b>├📦 Type: </b>{typ}'
             if ospath.isdir(f'{DOWNLOAD_DIR}{self.uid}/{name}'):
-                msg += f'\n<b>├SubFolders: </b>{folders}'
-                msg += f'\n<b>├Files: </b>{files}'
-            msg += f'\n<b>├It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
-            msg += f'\n<b>├cc: </b>{self.tag}'
-            msg += f'\n<b>╰Thanks For using {TITLE_NAME}</b>\n'
+                msg += f'\n<b>├🗃️ SubFolders: </b>{folders}'
+                msg += f'\n<b>├🗂️ Files: </b>{files}'
+            msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+            msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
             buttons = ButtonMaker()
             link = short_url(link)
             buttons.buildbutton("🔓 Drive Link", link)
@@ -471,7 +469,7 @@ def _mirror(bot, message, isZip=False, extract=False, isQbit=False, isLeech=Fals
             user = bot.get_chat_member(FSUB_CHANNEL_ID, message.from_user.id)
             if user.status not in ['member', 'creator', 'administrator']:
                 buttons.buildbutton(
-                    f"{CHANNEL_USERNAME}",
+                    f"🫂 Reflection Mirror",
                     f"https://t.me/{CHANNEL_USERNAME}")
                 reply_markup = InlineKeyboardMarkup(buttons.build_menu(1))
                 return sendMarkup(

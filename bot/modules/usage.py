@@ -8,6 +8,7 @@ from bot.helper.telegram_helper.message_utils import sendMessage
 from telegram import update
 from telegram.ext import CommandHandler
 
+
 def dyno_usage(update, context):
     heroku_api = "https://api.heroku.com"
     if HEROKU_API_KEY is not None and HEROKU_APP_NAME is not None:
@@ -50,7 +51,8 @@ def dyno_usage(update, context):
             for apps in Apps:
                 if apps.get("app_uuid") == app.id:
                     AppQuotaUsed = apps.get("quota_used") / 60
-                    AppPercent = math.floor(apps.get("quota_used") * 100 / quota)
+                    AppPercent = math.floor(
+                        apps.get("quota_used") * 100 / quota)
                     break
             else:
                 AppQuotaUsed = 0
@@ -58,21 +60,21 @@ def dyno_usage(update, context):
 
             AppHours = math.floor(AppQuotaUsed / 60)
             AppMinutes = math.floor(AppQuotaUsed % 60)
-            
+
             sendMessage(
                 f"<b>ℹ️ Dyno Usage ℹ️</b>\n\n<code>🟢 {app.name}</code>:\n"
                 f"• <code>{AppHours}</code> <b>Hours and</b> <code>{AppMinutes}</code> <b>Minutes\n💯: {AppPercent}%</b>\n\n"
                 "<b>⚠️ Dyno Remaining ⚠️</b>\n"
                 f"• <code>{hours}</code> <b>Hours and</b> <code>{minutes}</code> <b>Minutes\n💯: {quota_percent}%</b>\n\n"
                 "<b>❌ Estimated Expired ❌</b>\n"
-                f"• <code>{day}</code> <b>Days</b>",
-                context.bot,
-                update.message
-            )
+                f"• <code>{day}</code> <b>Days</b>", context.bot, update.message)
             return True
 
 
-dyno_usage_handler = CommandHandler(command=BotCommands.UsageCommand, callback=dyno_usage,
-                                    filters=CustomFilters.owner_filter | CustomFilters.sudo_user, run_async=True)
-                                    
+dyno_usage_handler = CommandHandler(
+    command=BotCommands.UsageCommand,
+    callback=dyno_usage,
+    filters=CustomFilters.owner_filter | CustomFilters.sudo_user,
+    run_async=True)
+
 dispatcher.add_handler(dyno_usage_handler)
