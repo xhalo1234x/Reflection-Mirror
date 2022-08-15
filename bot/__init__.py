@@ -647,7 +647,7 @@ try:
     if len(LOG_CHAT_URL) == 0:
         raise KeyError
 except:
-    LOG_CHAT_URL = None
+    LOG_CHAT_URL = None 
 try:
     AUTHOR_NAME = getConfig('AUTHOR_NAME')
     if len(AUTHOR_NAME) == 0:
@@ -671,7 +671,7 @@ try:
     if len(TITLE_NAME) == 0:
         TITLE_NAME = 'Reflection-Mirror-Search'
 except KeyError:
-    TITLE_NAME = 'WeebZone-Mirror-Search'
+    TITLE_NAME = 'Reflection-Mirror-Search'
 try:
     FINISHED_PROGRESS_STR = getConfig('FINISHED_PROGRESS_STR') 
     UN_FINISHED_PROGRESS_STR = getConfig('UN_FINISHED_PROGRESS_STR')
