@@ -8,7 +8,6 @@ def getCommand(name: str, command: str):
     except KeyError:
         return command
 
-
 class _BotCommands:
     def __init__(self):
         self.StartCommand = getCommand(f'START_COMMAND', f'start{CMD_INDEX}')
