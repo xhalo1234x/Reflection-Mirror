@@ -9,9 +9,10 @@ from urllib.request import urlopen
 from telegram import InlineKeyboardMarkup
 
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot import FINISHED_PROGRESS_STR, UN_FINISHED_PROGRESS_STR, download_dict, download_dict_lock, STATUS_LIMIT, botStartTime, DOWNLOAD_DIR, WEB_PINCODE, BASE_URL
+from bot import *
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
+import shutil
 import psutil
 from telegram.error import RetryAfter
 from telegram.ext import CallbackQueryHandler
@@ -28,17 +29,28 @@ PAGE_NO = 1
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Uploading...📤"
-    STATUS_DOWNLOADING = "Downloading...📥"
-    STATUS_CLONING = "Cloning...♻️"
-    STATUS_WAITING = "Queued...💤"
-    STATUS_PAUSED = "Paused...⛔️"
-    STATUS_ARCHIVING = "Archiving...🔐"
-    STATUS_EXTRACTING = "Extracting...📂"
-    STATUS_SPLITTING = "Splitting...✂️"
-    STATUS_CHECKING = "CheckingUp...📝"
-    STATUS_SEEDING = "Seeding...🌧"
-
+    if EMOJI_THEME is True:
+        STATUS_UPLOADING = "Uploading...📤"
+        STATUS_DOWNLOADING = "Downloading...📥"
+        STATUS_CLONING = "Cloning...♻️"
+        STATUS_WAITING = "Queued...💤"
+        STATUS_PAUSED = "Paused...⛔️"
+        STATUS_ARCHIVING = "Archiving...🔐"
+        STATUS_EXTRACTING = "Extracting...📂"
+        STATUS_SPLITTING = "Splitting...✂️"
+        STATUS_CHECKING = "CheckingUp...📝"
+        STATUS_SEEDING = "Seeding...🌧"
+    else:
+        STATUS_UPLOADING = "Uploading..."
+        STATUS_DOWNLOADING = "Downloading..."
+        STATUS_CLONING = "Cloning..."
+        STATUS_WAITING = "Queued..."
+        STATUS_PAUSED = "Paused..."
+        STATUS_ARCHIVING = "Archiving..."
+        STATUS_EXTRACTING = "Extracting..."
+        STATUS_SPLITTING = "Splitting..."
+        STATUS_CHECKING = "CheckingUp..."
+        STATUS_SEEDING = "Seeding..."
 
 class EngineStatus:
     STATUS_ARIA = "Aria2c v1.35.0"
@@ -51,12 +63,11 @@ class EngineStatus:
     STATUS_SPLIT = "FFmpeg v2.9.1"
     STATUS_ZIP = "p7zip v16.02"
 
-
+    
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
 PROGRESS_MAX_SIZE = 100 // 9
 PROGRESS_INCOMPLETE = ['◔', '◔', '◑', '◑', '◑', '◕', '◕']
-
 
 class setInterval:
     def __init__(self, interval, action):
@@ -75,7 +86,6 @@ class setInterval:
     def cancel(self):
         self.stopEvent.set()
 
-
 def get_readable_file_size(size_in_bytes) -> str:
     if size_in_bytes is None:
         return '0B'
@@ -88,15 +98,12 @@ def get_readable_file_size(size_in_bytes) -> str:
     except IndexError:
         return 'File too large'
 
-
 def getDownloadByGid(gid):
     with download_dict_lock:
         for dl in list(download_dict.values()):
-            dl.status()
             if dl.gid() == gid:
                 return dl
     return None
-
 
 def getAllDownload(req_status: str):
     with download_dict_lock:
@@ -105,7 +112,6 @@ def getAllDownload(req_status: str):
             if req_status in ['all', status]:
                 return dl
     return None
-
 
 def bt_selection_buttons(id_: str):
     if len(id_) > 20:
@@ -125,9 +131,7 @@ def bt_selection_buttons(id_: str):
         buttons.buildbutton("Select Files", f"{BASE_URL}/app/files/{id_}")
         buttons.sbutton("Pincode", f"btsel pin {gid} {pincode}")
     else:
-        buttons.buildbutton(
-            "Select Files",
-            f"{BASE_URL}/app/files/{id_}?pin_code={pincode}")
+        buttons.buildbutton("Select Files", f"{BASE_URL}/app/files/{id_}?pin_code={pincode}")
     buttons.sbutton("Done Selecting", f"btsel done {gid} {id_}")
     return InlineKeyboardMarkup(buttons.build_menu(2))
 
@@ -146,96 +150,106 @@ def get_progress_bar_string(status):
     p_str = f"「{p_str}」"
     return p_str
 
-
-def progress_bar(percentage):
-    p_used = '⬢'
-    p_total = '⬡'
-    if isinstance(percentage, str):
-        return 'NaN'
-    try:
-        percentage = int(percentage)
-    except BaseException:
-        percentage = 0
-    return ''.join(
-        p_used if i <= percentage // 10 else p_total for i in range(1, 11)
-    )
-
-
 def get_readable_message():
     with download_dict_lock:
         msg = ""
         if STATUS_LIMIT is not None:
             tasks = len(download_dict)
             global pages
-            pages = ceil(tasks / STATUS_LIMIT)
+            pages = ceil(tasks/STATUS_LIMIT)
             if PAGE_NO > pages and pages != 0:
                 globals()['COUNT'] -= STATUS_LIMIT
                 globals()['PAGE_NO'] -= 1
-        for index, download in enumerate(
-                list(download_dict.values())[COUNT:], start=1):
-            msg += f"<b>Name:</b> <code>{escape(str(download.name()))}</code>"
-            msg += f"\n<b>╭Status:</b> <i>{download.status()}</i>"
-            if download.status() not in [
-                    MirrorStatus.STATUS_SPLITTING,
-                    MirrorStatus.STATUS_SEEDING]:
-                msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
-                if download.status() in [MirrorStatus.STATUS_DOWNLOADING,
-                                         MirrorStatus.STATUS_WAITING,
-                                         MirrorStatus.STATUS_PAUSED]:
-                    msg += f"\n<b>├Downloaded:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                elif download.status() == MirrorStatus.STATUS_UPLOADING:
-                    msg += f"\n<b>├Uploaded:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                elif download.status() == MirrorStatus.STATUS_CLONING:
-                    msg += f"\n<b>├Cloned:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                elif download.status() == MirrorStatus.STATUS_ARCHIVING:
-                    msg += f"\n<b>├Archived:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                elif download.status() == MirrorStatus.STATUS_EXTRACTING:
-                    msg += f"\n<b>├Extracted:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
-                msg += f"\n<b>├Speed:</b> {download.speed()}"
-                msg += f"\n<b>├ETA:</b> {download.eta()}"
-                msg += f"\n<b>├Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
-                msg += f"\n<b>├Engine :</b> {download.eng()}"
-                msg += f"\n<b>├Warn: </b> <code>/warn {download.message.from_user.id}</code>"
-                try:
-                    msg += f"\n<b>├Seeders:</b> {download.aria_download().num_seeders}" \
-                           f" | <b>🧲 Peers:</b> {download.aria_download().connections}"
-                except BaseException:
-                    pass
-                try:
-                    msg += f"\n<b>├Seeders:</b> {download.torrent_info().num_seeds}" \
-                           f" | <b>🧲 Leechers:</b> {download.torrent_info().num_leechs}"
-                except BaseException:
-                    pass
+        for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
+            if EMOJI_THEME is True:
+                msg += f"<b>╭📁 Name:</b> <code>{escape(str(download.name()))}</code>"
+                msg += f"\n<b>├🤖 Status:</b> <i>{download.status()}</i>"
+            else:
+                msg += f"<b>╭ Name:</b> <code>{escape(str(download.name()))}</code>"
+                msg += f"\n<b>├ Status:</b> <i>{download.status()}</i>"
+            if download.status() not in [MirrorStatus.STATUS_SEEDING, MirrorStatus.STATUS_SPLITTING]:
+                if EMOJI_THEME is True:
+                    msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
+                    msg += f"\n<b>├🔄 Processed:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
+                    msg += f"\n<b>├⚡ Speed:</b> {download.speed()}"
+                    msg += f"\n<b>├⏳ ETA:</b> {download.eta()}"
+                    msg += f"\n<b>├⏳ Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                    msg += f"\n<b>├⛓️ Engine :</b> {download.eng()}"
+                    msg += f"\n<b>├⚠️ Warn: </b> <code>/warn {download.message.from_user.id}</code>"
+                else:
+                    msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
+                    msg += f"\n<b>├ Processed:</b> {get_readable_file_size(download.processed_bytes())} of {download.size()}"
+                    msg += f"\n<b>├ Speed:</b> {download.speed()}"
+                    msg += f"\n<b>├ ETA:</b> {download.eta()}"
+                    msg += f"\n<b>├ Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                    msg += f"\n<b>├ Engine :</b> {download.eng()}"
+                    msg += f"\n<b>├ Warn: </b> <code>/warn {download.message.from_user.id}</code>"
+
+                if hasattr(download, 'seeders_num'):
+                    try:
+                        if EMOJI_THEME is True:
+                            msg += f"\n<b>├🌱 Seeders:</b> {download.seeders_num()} | <b>🐌 Leechers:</b> {download.leechers_num()}"
+                        else:
+                            msg += f"\n<b>├ Seeders:</b> {download.seeders_num()} | <b>Leechers:</b> {download.leechers_num()}"
+                    except:
+                        pass
                 if download.message.chat.type != 'private':
                     try:
                         chatid = str(download.message.chat.id)[4:]
-                        msg += f'\n<b>├Source: </b><a href="https://t.me/c/{chatid}/{download.message.message_id}">{download.message.from_user.first_name}</a> | <b>Id :</b> <code>{download.message.from_user.id}</code>'
-                    except BaseException:
+                        if EMOJI_THEME is True:
+                            msg += f'\n<b>├🌐 Source: </b><a href="https://t.me/c/{chatid}/{download.message.message_id}">{download.message.from_user.first_name}</a> | <b>Id :</b> <code>{download.message.from_user.id}</code>'
+                            msg += f"\n<b>╰❎ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+                        else:
+                            msg += f'\n<b>├ Source: </b><a href="https://t.me/c/{chatid}/{download.message.message_id}">{download.message.from_user.first_name}</a> | <b>Id :</b> <code>{download.message.from_user.id}</code>'
+                            msg += f"\n<b>╰ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"                 
+                    except:
                         pass
                 else:
-                    msg += f'\n<b>├User:</b> ️<code>{download.message.from_user.first_name}</code> | <b>Id:</b> <code>{download.message.from_user.id}</code>'
+                    if EMOJI_THEME is True:
+                        msg += f'\n<b>├👤 User:</b> ️<code>{download.message.from_user.first_name}</code> | <b>Id:</b> <code>{download.message.from_user.id}</code>'
+                        msg += f"\n<b>╰❎ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+                    else:
+                        msg += f'\n<b>├ User:</b> ️<code>{download.message.from_user.first_name}</code> | <b>Id:</b> <code>{download.message.from_user.id}</code>'
+                        msg += f"\n<b>╰ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
 
             elif download.status() == MirrorStatus.STATUS_SEEDING:
-                msg += f"\n<b>├Size: </b>{download.size()}"
-                msg += f"\n<b>├Engine:</b> <code>qBittorrent v4.4.2</code>"
-                msg += f"\n<b>├Speed: </b>{get_readable_file_size(download.torrent_info().upspeed)}/s"
-                msg += f" | <b>🔺Uploaded: </b>{get_readable_file_size(download.torrent_info().uploaded)}"
-                msg += f"\n<b>├Ratio: </b>{round(download.torrent_info().ratio, 3)}"
-                msg += f" | <b>├Time: </b>{get_readable_time(download.torrent_info().seeding_time)}"
-                msg += f"\n<b>├Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                if EMOJI_THEME is True:
+                    msg += f"\n<b>├📦 Size: </b>{download.size()}"
+                    msg += f"\n<b>├⛓️ Engine:</b> <code>qBittorrent v4.4.2</code>"
+                    msg += f"\n<b>├⚡ Speed: </b>{download.upload_speed()}"
+                    msg += f"\n<b>├🔺 Uploaded: </b>{download.uploaded_bytes()}"
+                    msg += f"\n<b>├📎 Ratio: </b>{download.ratio()}"
+                    msg += f" | <b>⏲️ Time: </b>{download.seeding_time()}"
+                    msg += f"\n<b>├⏳ Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                    msg += f"\n<b>╰❎ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
+                else:
+                    msg += f"\n<b>├ Size: </b>{download.size()}"
+                    msg += f"\n<b>├ Engine:</b> <code>qBittorrent v4.4.2</code>"
+                    msg += f"\n<b>├ Speed: </b>{download.upload_speed()}"
+                    msg += f"\n<b>├ Uploaded: </b>{download.uploaded_bytes()}"
+                    msg += f"\n<b>├ Ratio: </b>{download.ratio()}"
+                    msg += f" | <b> Time: </b>{download.seeding_time()}"
+                    msg += f"\n<b>├ Elapsed: </b>{get_readable_time(time() - download.message.date.timestamp())}"
+                    msg += f"\n<b>╰ Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
             else:
-                msg += f"\n<b>├Engine :</b> {download.eng()}"
-                msg += f"\n<b>├Size: </b>{download.size()}"
-                #msg += f"\n<b>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</b>"
-            msg += f"\n<b>╰Cancel: </b><code>/{BotCommands.CancelMirror} {download.gid()}</code>"
-            msg += f"\n<b>▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬</b>"
+                if EMOJI_THEME is True:
+                    msg += f"\n<b>├⛓️ Engine :</b> {download.eng()}"
+                    msg += f"\n<b>╰📐 Size: </b>{download.size()}"
+                else:
+                    msg += f"\n<b>├ Engine :</b> {download.eng()}"
+                    msg += f"\n<b>╰ Size: </b>{download.size()}"
+            msg += f"\n<b>_____________________________________</b>"
             msg += "\n\n"
             if STATUS_LIMIT is not None and index == STATUS_LIMIT:
                 break
         if len(msg) == 0:
             return None, None
-        bmsg = f"<b>🖥 CPU:</b> {cpu_percent()}% | <b>💿 FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-        bmsg += f"\n<b>🎮 RAM:</b> {virtual_memory().percent}% | <b>🟢 ONLINE:</b> {get_readable_time(time() - botStartTime)}"
+        if EMOJI_THEME is True:
+            bmsg = f"<b>🖥 CPU:</b> {cpu_percent()}% | <b>💿 FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+            bmsg += f"\n<b>🎮 RAM:</b> {virtual_memory().percent}% | <b>🟢 ONLINE:</b> {get_readable_time(time() - botStartTime)}"
+        else:
+            bmsg = f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+            bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>ONLINE:</b> {get_readable_time(time() - botStartTime)}"
         dlspeed_bytes = 0
         upspeed_bytes = 0
         for download in list(download_dict.values()):
@@ -250,26 +264,41 @@ def get_readable_message():
                     upspeed_bytes += float(spd.split('K')[0]) * 1024
                 elif 'MB/s' in spd:
                     upspeed_bytes += float(spd.split('M')[0]) * 1048576
-        bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>🔺 UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
-
+            elif download.status() == MirrorStatus.STATUS_SEEDING:
+                spd = download.upload_speed()
+                if 'K' in spd:
+                    upspeed_bytes += float(spd.split('K')[0]) * 1024
+                elif 'M' in spd:
+                    upspeed_bytes += float(spd.split('M')[0]) * 1048576
+        if EMOJI_THEME is True:
+            bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>🔺 UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
+        else:
+            bmsg += f"\n<b>DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
+        
         buttons = ButtonMaker()
-        # buttons.sbutton("Refresh", "status refresh")
-        buttons.sbutton("📈", str(THREE))
-      #  buttons.sbutton("Close", "status close")
+        buttons.sbutton("Refresh", "status refresh")
+        buttons.sbutton("Statistics", str(THREE))
+        buttons.sbutton("Close", "status close")
         sbutton = InlineKeyboardMarkup(buttons.build_menu(3))
-
+        
         if STATUS_LIMIT is not None and tasks > STATUS_LIMIT:
             msg += f"<b>Tasks:</b> {tasks}\n"
             buttons = ButtonMaker()
-            buttons.sbutton("⏪", "status pre")
-            buttons.sbutton(f"{PAGE_NO}/{pages}", str(THREE))
-            buttons.sbutton("⏩", "status nex")
-            buttons.sbutton("🔄", "status refresh")
-            buttons.sbutton("❌", "status close")
+            if EMOJI_THEME is True:
+                buttons.sbutton("⏪Previous", "status pre")
+                buttons.sbutton(f"{PAGE_NO}/{pages}", str(THREE))
+                buttons.sbutton("Next⏩", "status nex")
+                buttons.sbutton("Refresh", "status refresh")
+                buttons.sbutton("Close", "status close")
+            else:
+                buttons.sbutton("Previous", "status pre")
+                buttons.sbutton(f"{PAGE_NO}/{pages}", str(THREE))
+                buttons.sbutton("Next", "status nex")
+                buttons.sbutton("Refresh", "status refresh")
+                buttons.sbutton("Close", "status close")
             button = InlineKeyboardMarkup(buttons.build_menu(3))
             return msg + bmsg, button
         return msg + bmsg, sbutton
-
 
 def turn(data):
     try:
@@ -290,9 +319,8 @@ def turn(data):
                     COUNT -= STATUS_LIMIT
                     PAGE_NO -= 1
         return True
-    except BaseException:
+    except:
         return False
-
 
 def secondsToText():
     secs = AUTO_DELETE_UPLOAD_MESSAGE_DURATION
@@ -333,29 +361,39 @@ def get_readable_time(seconds: int) -> str:
     result += f'{seconds}s'
     return result
 
-
 def is_url(url: str):
     url = re_findall(URL_REGEX, url)
     return bool(url)
 
-
 def is_gdrive_link(url: str):
     return "drive.google.com" in url
-
 
 def is_gdtot_link(url: str):
     url = re_match(r'https?://.+\.gdtot\.\S+', url)
     return bool(url)
 
+def is_unified_link(url: str):
+    url1 = re_match(r'https?://(anidrive|driveroot|driveflix|indidrive|drivehub)\.in/\S+', url)
+    url = re_match(r'https?://(appdrive|driveapp|driveace|gdflix|drivelinks|drivebit|drivesharer|drivepro)\.\S+', url)
+    if bool(url1) == True:
+        return bool(url1)
+    elif bool(url) == True:
+        return bool(url)
+    else:
+        return False
 
-def is_appdrive_link(url: str):
-    url = re_match(r'https?://(?:\S*\.)?(?:appdrive|driveapp)\.in*/\S+', url)
-    return bool(url)
+def is_udrive_link(url: str):
+    if 'drivehub.ws' in url:
+        return 'drivehub.ws' in url
+    else:
+        url = re_match(r'https?://(hubdrive|katdrive|kolop|drivefire|drivebuzz)\.\S+', url)
+        return bool(url)
 
+def is_sharer_link(url: str):
+    url = re_match(r'https?://(sharer)\.pw/\S+', url)
 
 def is_mega_link(url: str):
     return "mega.nz" in url or "mega.co.nz" in url
-
 
 def get_mega_link_type(url: str):
     if "folder" in url:
@@ -366,11 +404,9 @@ def get_mega_link_type(url: str):
         return "folder"
     return "file"
 
-
 def is_magnet(url: str):
     magnet = re_findall(MAGNET_REGEX, url)
     return bool(magnet)
-
 
 def new_thread(fn):
     """To use as decorator to make a function call threaded.
@@ -384,35 +420,25 @@ def new_thread(fn):
 
     return wrapper
 
-
 def get_content_type(link: str) -> str:
     try:
-        res = rhead(
-            link,
-            allow_redirects=True,
-            timeout=5,
-            headers={
-                'user-agent': 'Wget/1.12'})
+        res = rhead(link, allow_redirects=True, timeout=5, headers = {'user-agent': 'Wget/1.12'})
         content_type = res.headers.get('content-type')
-    except BaseException:
+    except:
         try:
             res = urlopen(link, timeout=5)
             info = res.info()
             content_type = info.get_content_type()
-        except BaseException:
+        except:
             content_type = None
     return content_type
 
 
 ONE, TWO, THREE = range(3)
-
-
 def pop_up_stats(update, context):
     query = update.callback_query
     stats = bot_sys_stats()
     query.answer(text=stats, show_alert=True)
-
-
 def bot_sys_stats():
     currentTime = get_readable_time(time() - botStartTime)
     total, used, free, disk = disk_usage('/')
