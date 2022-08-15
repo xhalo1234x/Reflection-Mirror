@@ -728,6 +728,11 @@ try:
 except BaseException:
     SEARCH_PLUGINS = None
 try:
+    EMOJI_THEME = getConfig('EMOJI_THEME')
+    EMOJI_THEME = EMOJI_THEME.lower() == 'true'
+except:
+    EMOJI_THEME = False
+try:
     IMAGE_URL = getConfig('IMAGE_URL')
 except KeyError:
     IMAGE_URL = 'http://telegra.ph/REFLECTION-07-18'
