@@ -42,14 +42,13 @@ class MegaDownloadStatus:
 
     def eta(self):
         try:
-            seconds = (self.size_raw() - self.processed_bytes()) / \
-                self.speed_raw()
+            seconds = (self.size_raw() - self.processed_bytes()) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
-        except BaseException:
+        except:
             return '-'
 
     def download(self):
         return self.__obj
 
     def eng(self):
-        return EngineStatus.STATUS_MEGAfrom
+        return EngineStatus.STATUS_MEGA

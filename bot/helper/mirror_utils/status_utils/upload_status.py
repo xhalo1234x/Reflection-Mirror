@@ -8,6 +8,7 @@ class UploadStatus:
         self.__gid = gid
         self.message = listener.message
 
+
     def processed_bytes(self):
         return self.__obj.processed_bytes
 
@@ -43,8 +44,7 @@ class UploadStatus:
 
     def eta(self):
         try:
-            seconds = (self.__size - self.__obj.processed_bytes) / \
-                self.speed_raw()
+            seconds = (self.__size - self.__obj.processed_bytes) / self.speed_raw()
             return f'{get_readable_time(seconds)}'
         except ZeroDivisionError:
             return '-'

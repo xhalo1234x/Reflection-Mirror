@@ -1,7 +1,6 @@
 from bot import LOGGER
 from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size, get_readable_time, EngineStatus
 
-
 def get_download(client, uid):
     try:
         return client.torrents_info(tag=uid)[0]
