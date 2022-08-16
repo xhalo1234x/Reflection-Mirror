@@ -1,11 +1,10 @@
-FROM anasty17/mltb:latest
+FROM dipeshpatil123/dipeshmirror:latest
 
 WORKDIR /usr/src/app
 RUN chmod 777 /usr/src/app
 
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
-
 COPY . .
+RUN pip3 install --no-cache-dir -r requirements.txt
+RUN apt install mediainfo -y
 
 CMD ["bash", "start.sh"]
