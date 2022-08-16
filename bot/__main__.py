@@ -370,8 +370,7 @@ if SET_BOT_COMMANDS:
         (f'{BotCommands.AuthorizeCommand}','Authorize user/chat'),
         (f'{BotCommands.UnAuthorizeCommand}','UnAuthorize user/chat'),
         (f'{BotCommands.AddSudoCommand}','Add Sudo'),
-        (f'{BotCommands.RmSudoCommand}','Remove Sudo'),
-        (f'{BotCommands.SleepCommand}','Sleep Bot')
+        (f'{BotCommands.RmSudoCommand}','Remove Sudo')
     ]
 
 
