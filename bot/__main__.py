@@ -9,7 +9,7 @@ from telegram.ext import CommandHandler
 import requests
 import pytz
 from bot import bot, dispatcher, updater, botStartTime, TIMEZONE, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, \
-                    DB_URI, alive, app, main_loop, HEROKU_API_KEY, HEROKU_APP_NAME, SET_BOT_COMMANDS, AUTHORIZED_CHATS
+                    DB_URI, app, main_loop, HEROKU_API_KEY, HEROKU_APP_NAME, SET_BOT_COMMANDS, AUTHORIZED_CHATS
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
@@ -190,51 +190,17 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
         )
 
 def restart(update, context):
-    cmd = update.effective_message.text.split(' ', 1)
-    dynoRestart = False
-    dynoKill = False
-    if len(cmd) == 2:
-        dynoRestart = (cmd[1].lower()).startswith('d')
-        dynoKill = (cmd[1].lower()).startswith('k')
-    if (not HEROKU_API_KEY) or (not HEROKU_APP_NAME):
-        LOGGER.info("If you want Heroku features, fill HEROKU_APP_NAME HEROKU_API_KEY vars.")
-        dynoRestart = False
-        dynoKill = False
-    if dynoRestart:
-        LOGGER.info("Dyno Restarting.")
-        restart_message = sendMessage("Dyno Restarting.", context.bot, update.message)
-        with open(".restartmsg", "w") as f:
-            f.truncate(0)
-            f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
-        heroku_conn = heroku3.from_key(HEROKU_API_KEY)
-        app = heroku_conn.app(HEROKU_APP_NAME)
-        app.restart()
-    elif dynoKill:
-        LOGGER.info("Killing Dyno. MUHAHAHA")
-        sendMessage("Killed Dyno.", context.bot, update.message)
-        alive.kill()
-        clean_all()
-        heroku_conn = heroku3.from_key(HEROKU_API_KEY)
-        app = heroku_conn.app(HEROKU_APP_NAME)
-        proclist = app.process_formation()
-        for po in proclist:
-            app.process_formation()[po.type].scale(0)
-    else:
-        LOGGER.info("Normally Restarting.")
-        restart_message = sendMessage("Normally Restarting.", context.bot, update.message)
-        if Interval:
-            Interval[0].cancel()
-            Interval.clear()
-        alive.kill()
-        clean_all()
-        srun(["pkill", "-9", "-f", "gunicorn|extra-api|last-api|megasdkrest|new-api"])
-        srun(["python3", "update.py"])
-        with open(".restartmsg", "w") as f:
-            f.truncate(0)
-            f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
-        osexecl(executable, executable, "-m", "bot")
-
-
+    restart_message = sendMessage("Restarting...", context.bot, update.message)
+    if Interval:
+        Interval[0].cancel()
+        Interval.clear()
+    clean_all()
+    srun(["pkill", "-f", "gunicorn|aria2c|qbittorrent-nox"])
+    srun(["python3", "update.py"])
+    with open(".restartmsg", "w") as f:
+        f.truncate(0)
+        f.write(f"{restart_message.chat.id}\n{restart_message.message_id}\n")
+    osexecl(executable, executable, "-m", "bot")
 
 def ping(update, context):
     start_time = int(round(time() * 1000))
