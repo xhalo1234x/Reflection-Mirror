@@ -679,6 +679,11 @@ except:
     FINISHED_PROGRESS_STR = '●' # '■'
     UN_FINISHED_PROGRESS_STR = '○' # '□'
 try:
+    TELEGRAPH_STYLE = getConfig('TELEGRAPH_STYLE')
+    TELEGRAPH_STYLE = TELEGRAPH_STYLE.lower() == 'true'
+except:
+    TELEGRAPH_STYLE = False
+try:
     TOKEN_PICKLE_URL = getConfig('TOKEN_PICKLE_URL')
     if len(TOKEN_PICKLE_URL) == 0:
         raise KeyError
