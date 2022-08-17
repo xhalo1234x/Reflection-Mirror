@@ -95,7 +95,7 @@ def getHerokuDetails(h_api_key, h_app_name):
 
 
 
-IMAGE_X = "https://telegra.ph/file/9c2c7250397f4ed2eed20.jpg"
+IMAGE_X = "https://graph.org/file/9c2c7250397f4ed2eed20.jpg"
 
 now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
 
@@ -358,8 +358,8 @@ help_admin = telegraph.create_page(
 
 def bot_help(update, context):
     button = ButtonMaker()
-    button.buildbutton("👤 User", f"https://telegra.ph/{help_user}")
-    button.buildbutton("🛡️ Admin", f"https://telegra.ph/{help_admin}")
+    button.buildbutton("👤 User", f"https://graph.org/{help_user}")
+    button.buildbutton("🛡️ Admin", f"https://graph.org/{help_admin}")
     sendMarkup(help_string, context.bot, update.message, InlineKeyboardMarkup(button.build_menu(2)))
 
        
