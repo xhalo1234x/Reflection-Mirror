@@ -249,20 +249,6 @@ class MirrorLeechListener:
                             bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
                 except TypeError:
                     pass
-        if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
-            reply_to = self.message.reply_to_message
-            if reply_to is not None:
-                reply_to.delete()
-            auto_delete_message = int(AUTO_DELETE_UPLOAD_MESSAGE_DURATION / 60)
-            if self.message.chat.type == 'private':
-                warnmsg = ''
-            else:
-                if EMOJI_THEME is True:
-                    warnmsg = f'<b>❗ This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
-                else:
-                    warnmsg = f'<b>This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
-        else:
-            warnmsg = ''
         if BOT_PM and self.message.chat.type != 'private':
             if EMOJI_THEME is True:
                 pmwarn = f"<b>😉 I have sent files in PM.</b>\n"
@@ -296,6 +282,7 @@ class MirrorLeechListener:
             msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
+       # msg = f"<b>Name: </b><code>{escape(name)}</code>\n<b>Size: </b>{size}"
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -380,11 +367,11 @@ class MirrorLeechListener:
                 for index, (link, name) in enumerate(files.items(), start=1):
                     fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
-                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                         sleep(1)
                         fmsg = ''
                 if fmsg != '':
-                    uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                    uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                     Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
 
             if self.seed:
@@ -478,9 +465,18 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            uploadmsg = sendMarkup(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            botpm = f"<b>\nHey {self.tag}!, I have sent your links in PM.</b>\n"
+            buttons = ButtonMaker()
+            bot_d = bot.get_me()  
+            b_uname = bot_d.username  
+            botstart = f"http://t.me/{b_uname}"  
+            buttons.buildbutton("View links in PM", f"{botstart}")
+            uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            reply_to = self.message.reply_to_message
+            if reply_to is not None:
+               reply_to.delete()
+            self.message.delete()
             Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
-            
             if MIRROR_LOGS:	
                 try:	
                     for chatid in MIRROR_LOGS:	
