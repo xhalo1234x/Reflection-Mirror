@@ -367,11 +367,11 @@ class MirrorLeechListener:
                 for index, (link, name) in enumerate(files.items(), start=1):
                     fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
-                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                         sleep(1)
                         fmsg = ''
                 if fmsg != '':
-                    uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                    uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                     Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
 
             if self.seed:
@@ -465,7 +465,7 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            botpm = f"<b>\n\nHey {self.tag}!, I have sent your links in PM.</b>\n"
+            botpm = f"<b>\nHey {self.tag}!, I have sent your links in PM.</b>\n"
             buttons = ButtonMaker()
             bot_d = bot.get_me()  
             b_uname = bot_d.username  
