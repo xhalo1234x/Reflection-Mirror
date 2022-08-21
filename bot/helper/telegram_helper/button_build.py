@@ -1,4 +1,4 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardButton
 
 
 class ButtonMaker:
@@ -17,4 +17,4 @@ class ButtonMaker:
             menu.insert(0, header_buttons)
         if footer_buttons:
             menu.append(footer_buttons)
-        return InlineKeyboardMarkup(menu)
+        return menu
