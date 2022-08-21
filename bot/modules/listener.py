@@ -232,7 +232,7 @@ class MirrorLeechListener:
         b_uname = bot_d.username	
         botstart = f"http://t.me/{b_uname}"	
         buttons.buildbutton("View links in PM", f"{botstart}")
-        sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+        sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2)))
         reply_to = self.message.reply_to_message
         if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
             reply_to = self.message.reply_to_message
