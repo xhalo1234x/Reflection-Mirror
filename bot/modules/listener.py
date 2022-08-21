@@ -282,6 +282,23 @@ class MirrorLeechListener:
             msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
+        if EMOJI_THEME is True:
+                msg += f'\n<b>├📦 Type: </b>{typ}'
+            else:
+                msg += f'\n<b>├ Type: </b>{typ}'
+            if typ == "Folder":
+                if EMOJI_THEME is True:
+                    msg += f'\n<b>├🗃️ SubFolders: </b>{folders}'
+                    msg += f'\n<b>├🗂️ Files: </b>{files}'
+                else:
+                    msg += f'\n<b>├ SubFolders: </b>{folders}'
+                    msg += f'\n<b>├ Files: </b>{files}'
+            if EMOJI_THEME is True:
+                msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
+            else:
+                msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
        # msg = f"<b>Name: </b><code>{escape(name)}</code>\n<b>Size: </b>{size}"
         botpm = f"<b>\n\nHey {self.tag}!, I have sent your links in PM.</b>\n"
         buttons = ButtonMaker()
