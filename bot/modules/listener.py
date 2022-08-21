@@ -486,6 +486,9 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
+            uploadmsg = sendMarkup(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
+            
             for chatid in MIRROR_LOGS:	
                         bot.sendMessage(chat_id=chatid, text=msg,	
                                         reply_markup=buttons.build_menu(2),	
