@@ -218,22 +218,6 @@ class MirrorLeechListener:
         slmsg = f"Added by: {self.tag} \n👥 User ID: <code>{self.user_id}</code>\n\n"
         mesg = self.message.text.split('\n')
         message_args = mesg[0].split(' ', maxsplit=1)
-        if LINK_LOGS:
-            try:
-                source_link = f"<code>{message_args[1]}</code>"
-                for link_log in LINK_LOGS:
-                    bot.sendMessage(link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
-            except IndexError:
-                pass
-            if reply_to is not None:
-                try:
-                    reply_text = reply_to.text
-                    if is_url(reply_text):
-                        source_link = f"<code>{reply_text.strip()}</code>"
-                        for link_log in LINK_LOGS:
-                            bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
-                except TypeError:
-                    pass
         if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
             DbManger().rm_complete_task(self.message.link)
         if EMOJI_THEME is True:
