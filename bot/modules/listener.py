@@ -283,9 +283,9 @@ class MirrorLeechListener:
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
         if EMOJI_THEME is True:
-                msg += f'\n<b>├📦 Type: </b>{typ}'
-            else:
-                msg += f'\n<b>├ Type: </b>{typ}'
+            msg += f'\n<b>├📦 Type: </b>{typ}'
+        else:
+            msg += f'\n<b>├ Type: </b>{typ}'
             if typ == "Folder":
                 if EMOJI_THEME is True:
                     msg += f'\n<b>├🗃️ SubFolders: </b>{folders}'
