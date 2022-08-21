@@ -213,9 +213,6 @@ class MirrorLeechListener:
             drive.upload(up_name)
 
     def onUploadComplete(self, link: str, size, files, folders, typ, name):
-    	buttons = ButtonMaker()
-        mesg = self.message.text.split('\n')
-        message_args = mesg[0].split(' ', maxsplit=1)
         reply_to = self.message.reply_to_message
         slmsg = f"Added by: {self.tag} \n👥 User ID: <code>{self.user_id}</code>\n\n"
         if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
@@ -235,6 +232,8 @@ class MirrorLeechListener:
         if reply_to is not None:
             reply_to.delete()
         self.message.delete()
+        mesg = self.message.text.split('\n')
+        message_args = mesg[0].split(' ', maxsplit=1)
         if LINK_LOGS:
             try:
                 source_link = f"<code>{message_args[1]}</code>"
