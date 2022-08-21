@@ -1,25 +1,37 @@
 from requests import utils as rutils
-from re import search as re_search
-from time import sleep
+from subprocess import run as srun
+from pathlib import PurePath
+from telegram.ext import CommandHandler
+from re import match as re_match, search as re_search, split as re_split
+from time import sleep, time
+from base64 import b64encode
+from shutil import rmtree
 from os import path as ospath, remove as osremove, listdir, walk
 from subprocess import Popen
 from html import escape
-
-from bot import *
+from threading import Thread
 from telegram import InlineKeyboardMarkup, ParseMode, InlineKeyboardButton
+
+from bot import bot, Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, \
+                BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, aria2, dispatcher, DOWNLOAD_DIR, \
+                download_dict, download_dict_lock, TG_SPLIT_SIZE, LOGGER, MEGA_KEY, DB_URI, INCOMPLETE_TASK_NOTIFIER, \
+                LEECH_LOG, BOT_PM, MIRROR_LOGS, SOURCE_LINK, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, \
+                MIRROR_ENABLED, LEECH_ENABLED, WATCH_ENABLED, CLONE_ENABLED, LINK_LOGS, EMOJI_THEME
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_gdtot_link, is_mega_link, is_gdrive_link, get_content_type, get_readable_time
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split_file, clean_download, clean_target
-from bot.helper.ext_utils.exceptions import NotSupportedExtractionArchive
+from bot.helper.ext_utils.exceptions import DirectDownloadLinkException, NotSupportedExtractionArchive
 from bot.helper.mirror_utils.status_utils.extract_status import ExtractStatus
 from bot.helper.mirror_utils.status_utils.zip_status import ZipStatus
 from bot.helper.mirror_utils.status_utils.split_status import SplitStatus
 from bot.helper.mirror_utils.status_utils.upload_status import UploadStatus
+from bot.helper.ext_utils.shortenurl import short_url
 from bot.helper.mirror_utils.status_utils.tg_upload_status import TgUploadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.mirror_utils.upload_utils.pyrogramEngine import TgUploader
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages, auto_delete_upload_message
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.ext_utils.db_handler import DbManger
+from bot.helper.ext_utils.telegraph_helper import telegraph
 
 
 class MirrorLeechListener:
@@ -39,7 +51,7 @@ class MirrorLeechListener:
         self.select = select
         self.isPrivate = message.chat.type in ['private', 'group']
         self.suproc = None
-        self.user_id = self.message.from_user.id
+        self.user_id = self.message.from_user.id	
         reply_to = self.message.reply_to_message
 
     def clean(self):
@@ -216,24 +228,27 @@ class MirrorLeechListener:
             drive.upload(up_name)
 
     def onUploadComplete(self, link: str, size, files, folders, typ, name):
-        reply_to = self.message.reply_to_message
-        slmsg = f"Added by: {self.tag} \n👥 User ID: <code>{self.user_id}</code>\n\n"
+        buttons = ButtonMaker()
         mesg = self.message.text.split('\n')
         message_args = mesg[0].split(' ', maxsplit=1)
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().rm_complete_task(self.message.link)
-        if EMOJI_THEME is True:
-            msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
-        else:
-            msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
-        botpm = f"<b>\n\nHey {self.tag}!, I have sent your #Mirrored links in PM.</b>\n"
-        buttons = ButtonMaker()
-        bot_d = bot.get_me()	
-        b_uname = bot_d.username	
-        botstart = f"http://t.me/{b_uname}"	
-        buttons.buildbutton("View links in PM", f"{botstart}")
-        sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2)))
         reply_to = self.message.reply_to_message
+        slmsg = f"Added by: {self.tag} \n👥 User ID: <code>{self.user_id}</code>\n\n"
+        if LINK_LOGS:
+            try:
+                source_link = f"<code>{message_args[1]}</code>"
+                for link_log in LINK_LOGS:
+                    bot.sendMessage(link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
+            except IndexError:
+                pass
+            if reply_to is not None:
+                try:
+                    reply_text = reply_to.text
+                    if is_url(reply_text):
+                        source_link = f"<code>{reply_text.strip()}</code>"
+                        for link_log in LINK_LOGS:
+                            bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
+                except TypeError:
+                    pass
         if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
             reply_to = self.message.reply_to_message
             if reply_to is not None:
@@ -275,6 +290,12 @@ class MirrorLeechListener:
             logleechwarn = ''
         else:
             logleechwarn = ''
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+            DbManger().rm_complete_task(self.message.link)
+        if EMOJI_THEME is True:
+            msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
+        else:
+            msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -369,7 +390,7 @@ class MirrorLeechListener:
             if self.seed:
                 if self.newDir:
                     clean_target(self.newDir)
-                return
+                return			   			  
         else:
             if EMOJI_THEME is True:
                 msg += f'\n<b>├📦 Type: </b>{typ}'
@@ -389,19 +410,32 @@ class MirrorLeechListener:
                 msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
                 msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
             buttons = ButtonMaker()
-            buttons.buildbutton("Drive Link", link)
+            link = short_url(link)
+            buttons.buildbutton("☁️ Drive Link", link)
             LOGGER.info(f'Done Uploading {name}')
             if INDEX_URL is not None:
                 url_path = rutils.quote(f'{name}')
                 share_url = f'{INDEX_URL}/{url_path}'
                 if typ == "Folder":
                     share_url += '/'
-                    buttons.buildbutton("Index Link", share_url)
+                    share_url = short_url(share_url)
+                    buttons.buildbutton("⚡ Index Link", share_url)
                 else:
-                    buttons.buildbutton("Index Link", share_url)
+                    share_url = short_url(share_url)
+                    buttons.buildbutton("⚡ Index Link", share_url)
                     if VIEW_LINK:
                         share_urls = f'{INDEX_URL}/{url_path}?a=view'
-                        buttons.buildbutton("View Link", share_urls)
+                        share_urls = short_url(share_urls)
+                        buttons.buildbutton("🌐 View Link", share_urls)
+                    if BOT_PM and self.message.chat.type != 'private':	
+                        bot_d = bot.get_me()	
+                        b_uname = bot_d.username	
+                        botstart = f"http://t.me/{b_uname}"	
+                        buttons.buildbutton("View file in PM", f"{botstart}")
+                    elif self.message.chat.type == 'private':
+                        botstart = ''
+                    else:
+                        botstart = ''
             if BUTTON_FOUR_NAME is not None and BUTTON_FOUR_URL is not None:
                 buttons.buildbutton(f"{BUTTON_FOUR_NAME}", f"{BUTTON_FOUR_URL}")
             if BUTTON_FIVE_NAME is not None and BUTTON_FIVE_URL is not None:
@@ -444,13 +478,25 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            for chatid in MIRROR_LOGS:	
+            uploadmsg = sendMarkup(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
+            
+            if MIRROR_LOGS:	
+                try:	
+                    for chatid in MIRROR_LOGS:	
                         bot.sendMessage(chat_id=chatid, text=msg,	
-                                        reply_markup=buttons.build_menu(2),	
-                                        parse_mode='HTML')
-            bot.sendMessage(chat_id=self.user_id, text=msg,	
-                            reply_markup=buttons.build_menu(2),	
-                            parse_mode='HTML')	
+                                        reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
+                                        parse_mode=ParseMode.HTML)	
+                except Exception as e:	
+                    LOGGER.warning(e)	
+            if BOT_PM and self.message.chat.type != 'private':	
+                try:	
+                    bot.sendMessage(chat_id=self.user_id, text=msg,	
+                                    reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
+                                    parse_mode=ParseMode.HTML)	
+                except Exception as e:	
+                    LOGGER.warning(e)	
+                    return
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")
