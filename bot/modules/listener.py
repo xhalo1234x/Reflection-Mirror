@@ -289,11 +289,12 @@ class MirrorLeechListener:
         b_uname = bot_d.username  
         botstart = f"http://t.me/{b_uname}"  
         buttons.buildbutton("View links in PM", f"{botstart}")
-       # sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
+        uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
         reply_to = self.message.reply_to_message
         if reply_to is not None:
             reply_to.delete()
         self.message.delete()
+        Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -476,9 +477,6 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
-            Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
-
             if MIRROR_LOGS:	
                 try:	
                     for chatid in MIRROR_LOGS:	
