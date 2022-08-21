@@ -216,23 +216,6 @@ class MirrorLeechListener:
     def onUploadComplete(self, link: str, size, files, folders, typ, name):
         reply_to = self.message.reply_to_message
         slmsg = f"Added by: {self.tag} \n👥 User ID: <code>{self.user_id}</code>\n\n"
-        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
-            DbManger().rm_complete_task(self.message.link)
-        if EMOJI_THEME is True:
-            msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
-        else:
-            msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
-        botpm = f"<b>\n\nHey {self.tag}!, I have sent your #Mirrored links in PM.</b>\n"
-        buttons = ButtonMaker()
-        bot_d = bot.get_me()	
-        b_uname = bot_d.username	
-        botstart = f"http://t.me/{b_uname}"	
-        buttons.buildbutton("View links in PM", f"{botstart}")
-        sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
-        reply_to = self.message.reply_to_message
-        if reply_to is not None:
-            reply_to.delete()
-        self.message.delete()
         mesg = self.message.text.split('\n')
         message_args = mesg[0].split(' ', maxsplit=1)
         if LINK_LOGS:
@@ -251,6 +234,23 @@ class MirrorLeechListener:
                             bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
                 except TypeError:
                     pass
+        if not self.isPrivate and INCOMPLETE_TASK_NOTIFIER and DB_URI is not None:
+            DbManger().rm_complete_task(self.message.link)
+        if EMOJI_THEME is True:
+            msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
+        else:
+            msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
+        botpm = f"<b>\n\nHey {self.tag}!, I have sent your #Mirrored links in PM.</b>\n"
+        buttons = ButtonMaker()
+        bot_d = bot.get_me()	
+        b_uname = bot_d.username	
+        botstart = f"http://t.me/{b_uname}"	
+        buttons.buildbutton("View links in PM", f"{botstart}")
+        sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
+        reply_to = self.message.reply_to_message
+        if reply_to is not None:
+            reply_to.delete()
+        self.message.delete()
         if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
             reply_to = self.message.reply_to_message
             if reply_to is not None:
