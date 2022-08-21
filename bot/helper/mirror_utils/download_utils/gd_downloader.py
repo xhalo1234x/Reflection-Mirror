@@ -1,7 +1,6 @@
 from random import SystemRandom
 from string import ascii_letters, digits
-
-from bot import TELEGRAPH_STYLE, download_dict, download_dict_lock, ZIP_UNZIP_LIMIT, LOGGER, STOP_DUPLICATE, STORAGE_THRESHOLD, TORRENT_DIRECT_LIMIT
+from bot import TELEGRAPH_STYLE, download_dict, download_dict_lock, ZIP_UNZIP_LIMIT, LOGGER, STOP_DUPLICATE, STORAGE_THRESHOLD, TORRENT_DIRECT_LIMIT, LEECH_LIMIT
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.mirror_utils.status_utils.gd_download_status import GdDownloadStatus
 from bot.helper.telegram_helper.message_utils import sendMessage, sendStatusMessage, sendMarkup, sendFile
@@ -9,7 +8,7 @@ from bot.helper.ext_utils.bot_utils import get_readable_file_size
 from bot.helper.ext_utils.fs_utils import get_base_name, check_storage_threshold
 
 
-def add_gd_download(link, path, listener, is_gdtot, is_unified, is_udrive, is_sharer, newname):
+def add_gd_download(link, path, listener, is_gdtot, is_unified, is_udrive, newname):
     res, size, name, files = GoogleDriveHelper().helper(link)
     if res != "":
         return sendMessage(res, listener.bot, listener.message)
@@ -37,7 +36,7 @@ def add_gd_download(link, path, listener, is_gdtot, is_unified, is_udrive, is_sh
                     cap = f"File/Folder is already available in Drive. Here are the search results:\n\n{cap}"
                     sendFile(listener.bot, listener.message, f_name, cap)
                     return
-    if any([ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD, TORRENT_DIRECT_LIMIT]):
+    if any([ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD, TORRENT_DIRECT_LIMIT, LEECH_LIMIT]):
         arch = any([listener.extract, listener.isZip])
         limit = None
         if STORAGE_THRESHOLD is not None:
@@ -49,6 +48,9 @@ def add_gd_download(link, path, listener, is_gdtot, is_unified, is_udrive, is_sh
         if ZIP_UNZIP_LIMIT is not None and arch:
             mssg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
             limit = ZIP_UNZIP_LIMIT
+        if LEECH_LIMIT is not None and listener.isLeech:
+            mssg = f'Leech limit is {LEECH_LIMIT}GB'
+            limit = LEECH_LIMIT
         elif TORRENT_DIRECT_LIMIT is not None:
             mssg = f'Torrent/Direct limit is {TORRENT_DIRECT_LIMIT}GB'
             limit = TORRENT_DIRECT_LIMIT
@@ -66,5 +68,5 @@ def add_gd_download(link, path, listener, is_gdtot, is_unified, is_udrive, is_sh
     listener.onDownloadStart()
     sendStatusMessage(listener.message, listener.bot)
     drive.download(link)
-    if (is_gdtot or is_unified or is_udrive or is_sharer):
+    if (is_gdtot or is_unified or is_udrive):
         drive.deletefile(link)

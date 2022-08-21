@@ -4,8 +4,9 @@ from telegram.message import Message
 from telegram.error import RetryAfter
 from pyrogram.errors import FloodWait
 from os import remove
+
 from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, status_reply_dict, status_reply_dict_lock, \
-                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, LOG_CHANNEL, LOG_CHANNEL_LOGGER
+                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, AUTO_DELETE_UPLOAD_MESSAGE_DURATION
 from bot.helper.ext_utils.bot_utils import get_readable_message, setInterval
 
 
@@ -13,7 +14,7 @@ def sendMessage(text: str, bot, message: Message):
     try:
         return bot.sendMessage(message.chat_id,
                             reply_to_message_id=message.message_id,
-                            text=text, allow_sending_without_reply=True, parse_mode='HTMl', disable_web_page_preview=True)
+                            text=text, allow_sending_without_reply=True, parse_mode='HTML', disable_web_page_preview=True)
     except RetryAfter as r:
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
@@ -27,7 +28,7 @@ def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMar
         return bot.sendMessage(message.chat_id,
                             reply_to_message_id=message.message_id,
                             text=text, reply_markup=reply_markup, allow_sending_without_reply=True,
-                            parse_mode='HTMl', disable_web_page_preview=True)
+                            parse_mode='HTML', disable_web_page_preview=True)
     except RetryAfter as r:
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
@@ -36,27 +37,11 @@ def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMar
         LOGGER.error(str(e))
         return
 
-def sendLog(text: str, bot, message: Message, reply_markup: InlineKeyboardMarkup):
-    try:
-        return bot.send_message(f"{LOG_CHANNEL}",
-                             reply_to_message_id=message.message_id,
-                             text=text, disable_web_page_preview=True, reply_markup=reply_markup, allow_sending_without_reply=True, parse_mode='HTMl')
-    except Exception as e:
-        LOGGER.error(str(e))
-
-def sendtextlog(text: str, bot, message: Message):
-    try:
-        return bot.send_message(f"{LOG_CHANNEL_LOGGER}",
-                             reply_to_message_id=message.message_id,
-                             text=text, disable_web_page_preview=True, allow_sending_without_reply=True, parse_mode='HTMl')
-    except Exception as e:
-        LOGGER.error(str(e))
-        
 def editMessage(text: str, message: Message, reply_markup=None):
     try:
         bot.editMessageText(text=text, message_id=message.message_id,
                               chat_id=message.chat.id,reply_markup=reply_markup,
-                              parse_mode='HTMl', disable_web_page_preview=True)
+                              parse_mode='HTML', disable_web_page_preview=True)
     except RetryAfter as r:
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
@@ -68,7 +53,7 @@ def editMessage(text: str, message: Message, reply_markup=None):
 def sendRss(text: str, bot):
     if rss_session is None:
         try:
-            return bot.sendMessage(RSS_CHAT_ID, text, parse_mode='HTMl', disable_web_page_preview=True)
+            return bot.sendMessage(RSS_CHAT_ID, text, parse_mode='HTML', disable_web_page_preview=True)
         except RetryAfter as r:
             LOGGER.warning(str(r))
             sleep(r.retry_after * 1.5)
@@ -101,17 +86,6 @@ async def sendRss_pyro(text: str):
     except Exception as e:
         LOGGER.error(str(e))
         return
-
-def sendPrivate(text: str, bot, message: Message, reply_markup: InlineKeyboardMarkup):
-    bot_d = bot.get_me()
-    b_uname = bot_d.username
-    
-    try:
-        return bot.send_message(message.from_user.id,
-                             reply_to_message_id=message.message_id,
-                             text=text, disable_web_page_preview=True, reply_markup=reply_markup, allow_sending_without_reply=True, parse_mode='HTMl')
-    except Exception as e:
-        LOGGER.error(str(e))
 
 def sendPhoto(text: str, bot, message, photo, reply_markup=None):
     try:
@@ -153,7 +127,6 @@ def sendFile(bot, message: Message, name: str, caption=""):
         LOGGER.error(str(e))
         return
 
-
 def auto_delete_message(bot, cmd_message: Message, bot_message: Message):
     if AUTO_DELETE_MESSAGE_DURATION != -1:
         sleep(AUTO_DELETE_MESSAGE_DURATION)
@@ -176,16 +149,6 @@ def auto_delete_upload_message(bot, cmd_message: Message, bot_message: Message):
         except AttributeError:
             pass
 
-def auto_delete(bot, cmd_message: Message, bot_message: Message):
-    if AUTO_DELETE_MESSAGE_DURATION != -1:
-        sleep(AUTO_DELETE_MESSAGE_DURATION)
-        try:
-            # Skip if None is passed meaning we don't want to delete bot xor cmd message
-            deleteMessage(bot, cmd_message)
-            deleteMessage(bot, bot_message)
-        except AttributeError:
-            pass
-        
 def delete_all_messages():
     with status_reply_dict_lock:
         for data in list(status_reply_dict.values()):

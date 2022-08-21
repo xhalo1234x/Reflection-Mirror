@@ -6,7 +6,7 @@ from qbittorrentapi import Client as qbClient
 from aria2p import API as ariaAPI, Client as ariaClient
 from os import remove as osremove, path as ospath, environ
 from requests import get as rget
-from json import loads as jsnloads
+from json import loads as jsonloads
 from subprocess import Popen, run as srun, check_output
 from time import sleep, time
 from threading import Thread, Lock
@@ -16,8 +16,6 @@ from asyncio import get_event_loop
 from megasdkrestclient import MegaSdkRestClient, errors as mega_err
 
 main_loop = get_event_loop()
-
-PRE_DICT = {}
 
 faulthandler_enable()
 
@@ -299,7 +297,6 @@ try:
                 app.stop()
                 exit(1)
             TG_SPLIT_SIZE = 4194304000
-            MAX_LEECH_SIZE = 2097152000
             LOGGER.info("Telegram Premium detected! Leech limit is 4GB now.")
         elif (not DB_URI) or (not RSS_CHAT_ID):
             premium_session.stop()
@@ -369,12 +366,33 @@ try:
 except:
     CLONE_LIMIT = None
 try:
+    LEECH_LIMIT = getConfig('LEECH_LIMIT')
+    if len(LEECH_LIMIT) == 0:
+        raise KeyError
+    LEECH_LIMIT = float(LEECH_LIMIT)
+except:
+    LEECH_LIMIT = None
+try:
     MEGA_LIMIT = getConfig('MEGA_LIMIT')
     if len(MEGA_LIMIT) == 0:
         raise KeyError
     MEGA_LIMIT = float(MEGA_LIMIT)
 except:
     MEGA_LIMIT = None
+try:
+    TOTAL_TASKS_LIMIT = getConfig('TOTAL_TASKS_LIMIT')
+    if len(TOTAL_TASKS_LIMIT) == 0:
+        raise KeyError
+    TOTAL_TASKS_LIMIT = int(TOTAL_TASKS_LIMIT)
+except KeyError:
+    TOTAL_TASKS_LIMIT = None
+try:
+    USER_TASKS_LIMIT = getConfig('USER_TASKS_LIMIT')
+    if len(USER_TASKS_LIMIT) == 0:
+        raise KeyError
+    USER_TASKS_LIMIT = int(USER_TASKS_LIMIT)
+except KeyError:
+    USER_TASKS_LIMIT = None
 try:
     STORAGE_THRESHOLD = getConfig('STORAGE_THRESHOLD')
     if len(STORAGE_THRESHOLD) == 0:
@@ -445,29 +463,6 @@ try:
     STOP_DUPLICATE = STOP_DUPLICATE.lower() == 'true'
 except:
     STOP_DUPLICATE = False
-try:
-    LOG_CHANNEL = int(getConfig('LOG_CHANNEL'))
-    if int(LOG_CHANNEL) == 0:
-        raise KeyError
-except:
-    LOGGER.info('LOG_CHANNEL not provided!')
-    LOG_CHANNEL = None
-    
-try:
-    LOG_CHANNEL_LOGGER = int(getConfig('LOG_CHANNEL_LOGGER'))
-    if int(LOG_CHANNEL_LOGGER) == 0:
-        raise KeyError
-except:
-    LOGGER.info('LOG_CHANNEL_LOGGER not provided!')
-    LOG_CHANNEL_LOGGER = None 
-    
-try:
-    LOG_LEECH = int(getConfig('LOG_LEECH'))
-    if int(LOG_LEECH) == 0:
-        raise KeyError
-except:
-    LOGGER.info('LOG_LEECH not provided!')
-    LOG_LEECH = None    
 try:
     VIEW_LINK = getConfig('VIEW_LINK')
     VIEW_LINK = VIEW_LINK.lower() == 'true'
@@ -544,25 +539,6 @@ try:
 except:
     CLONE_ENABLED = False
 try:
-    FSUB = getConfig("FSUB")
-    if FSUB.lower() == "true":
-        FSUB = "true"
-except KeyError:
-    FSUB = False
-    LOGGER.info("Force Subscribe is disabled")
-try:
-    CHANNEL_USERNAME = getConfig("CHANNEL_USERNAME")
-    if len(CHANNEL_USERNAME) == 0:
-        raise KeyError
-except KeyError:
-    log_warning("CHANNEL_USERNAME not provided! Using default @DevilMirrors")
-    CHANNEL_USERNAME = "@dipeshmirror"
-try:
-    FSUB_CHANNEL_ID = int(getConfig("FSUB_CHANNEL_ID"))
-except KeyError:
-    log_warning("CHANNEL_USERNAME not provided! Using default id of @DevilMirrors")
-    FSUB_CHANNEL_ID = "-1001577416484"
-try:
     ANILIST_ENABLED = getConfig("ANILIST_ENABLED")
     ANILIST_ENABLED = ANILIST_ENABLED.lower() == "true"
 except:
@@ -620,18 +596,6 @@ try:
 except:
     DRIVEFIRE_CRYPT = None
 try:
-    XSRF_TOKEN = getConfig('XSRF_TOKEN')
-    if len(XSRF_TOKEN) == 0:
-        raise KeyError
-except:
-    XSRF_TOKEN = None
-try:
-    laravel_session = getConfig('laravel_session')
-    if len(laravel_session) == 0:
-        raise KeyError
-except:
-    laravel_session = None
-try:
     SOURCE_LINK = getConfig('SOURCE_LINK')
     SOURCE_LINK = SOURCE_LINK.lower() == 'true'
 except KeyError:
@@ -642,35 +606,29 @@ try:
 except KeyError:	
     BOT_PM = False
 try:
-    LOG_CHAT_URL = getConfig('LOG_CHAT_URL')
-    if len(LOG_CHAT_URL) == 0:
-        raise KeyError
-except:
-    LOG_CHAT_URL = None 
-try:
     AUTHOR_NAME = getConfig('AUTHOR_NAME')
     if len(AUTHOR_NAME) == 0:
-        AUTHOR_NAME = 'Dipesh'
+        AUTHOR_NAME = 'Karan'
 except KeyError:
-    AUTHOR_NAME = 'Dipesh'
+    AUTHOR_NAME = 'Karan'
 try:
     AUTHOR_URL = getConfig('AUTHOR_URL')
     if len(AUTHOR_URL) == 0:
-        AUTHOR_URL = 'https://t.me/dipeshmirror'
+        AUTHOR_URL = 'https://t.me/DipeshMirror'
 except KeyError:
-    AUTHOR_URL = 'https://t.me/dipeshmirror'
+    AUTHOR_URL = 'https://t.me/DipeshMirror'
 try:
     GD_INFO = getConfig('GD_INFO')
     if len(GD_INFO) == 0:
-        GD_INFO = 'Uploaded by Reflection Mirror Bot'
+        GD_INFO = 'Uploaded by DipeshMirror  Mirror Bot'
 except KeyError:
-    GD_INFO = 'Uploaded by Reflection Mirror Bot'
+    GD_INFO = 'Uploaded by DipeshMirror Mirror Bot'
 try:
     TITLE_NAME = getConfig('TITLE_NAME')
     if len(TITLE_NAME) == 0:
-        TITLE_NAME = 'Reflection-Mirror-Search'
+        TITLE_NAME = 'DipeshMirror-Mirror-Search'
 except KeyError:
-    TITLE_NAME = 'Reflection-Mirror-Search'
+    TITLE_NAME = 'DipeshMirror-Mirror-Search'
 try:
     FINISHED_PROGRESS_STR = getConfig('FINISHED_PROGRESS_STR') 
     UN_FINISHED_PROGRESS_STR = getConfig('UN_FINISHED_PROGRESS_STR')
@@ -678,10 +636,26 @@ except:
     FINISHED_PROGRESS_STR = '●' # '■'
     UN_FINISHED_PROGRESS_STR = '○' # '□'
 try:
-    TELEGRAPH_STYLE = getConfig('TELEGRAPH_STYLE')
-    TELEGRAPH_STYLE = TELEGRAPH_STYLE.lower() == 'true'
-except:
-    TELEGRAPH_STYLE = False
+    FSUB = getConfig('FSUB')
+    FSUB = FSUB.lower() == 'true'
+except BaseException:
+    FSUB = False
+    LOGGER.info("Force Subscribe is disabled")
+try:
+    CHANNEL_USERNAME = getConfig("CHANNEL_USERNAME")
+    if len(CHANNEL_USERNAME) == 0:
+        raise KeyError
+except KeyError:
+    log_info("CHANNEL_USERNAME not provided! Using default @DipeshMirror")
+    CHANNEL_USERNAME = "DipeshMirror"
+try:
+    FSUB_CHANNEL_ID = getConfig("FSUB_CHANNEL_ID")
+    if len(FSUB_CHANNEL_ID) == 0:
+        raise KeyError
+    FSUB_CHANNEL_ID = int(FSUB_CHANNEL_ID)
+except KeyError:
+    log_info("CHANNEL_ID not provided! Using default id of @DipeshMirror")
+    FSUB_CHANNEL_ID = -1001512307861
 try:
     TOKEN_PICKLE_URL = getConfig('TOKEN_PICKLE_URL')
     if len(TOKEN_PICKLE_URL) == 0:
@@ -767,18 +741,23 @@ try:
     SEARCH_PLUGINS = getConfig('SEARCH_PLUGINS')
     if len(SEARCH_PLUGINS) == 0:
         raise KeyError
-    SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
+    SEARCH_PLUGINS = jsonloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
+try:
+    IMAGE_URL = getConfig('IMAGE_URL')
+except KeyError:
+    IMAGE_URL = 'http://telegra.ph/REFLECTION-07-18'
 try:
     EMOJI_THEME = getConfig('EMOJI_THEME')
     EMOJI_THEME = EMOJI_THEME.lower() == 'true'
 except:
     EMOJI_THEME = False
 try:
-    IMAGE_URL = getConfig('IMAGE_URL')
-except KeyError:
-    IMAGE_URL = 'http://graph.org/REFLECTION-07-18'
+    TELEGRAPH_STYLE = getConfig('TELEGRAPH_STYLE')
+    TELEGRAPH_STYLE = TELEGRAPH_STYLE.lower() == 'true'
+except:
+    TELEGRAPH_STYLE = False
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot

@@ -3,7 +3,7 @@ from threading import Thread, Event
 from time import time
 from math import ceil
 from html import escape
-from psutil import virtual_memory, cpu_percent, disk_usage
+from psutil import cpu_percent, disk_usage, net_io_counters, virtual_memory
 from requests import head as rhead
 from urllib.request import urlopen
 from telegram import InlineKeyboardMarkup
@@ -30,27 +30,27 @@ PAGE_NO = 1
 
 class MirrorStatus:
     if EMOJI_THEME is True:
-        STATUS_UPLOADING = "Uploading...📤"
-        STATUS_DOWNLOADING = "Downloading...📥"
-        STATUS_CLONING = "Cloning...♻️"
-        STATUS_WAITING = "Queued...💤"
-        STATUS_PAUSED = "Paused...⛔️"
-        STATUS_ARCHIVING = "Archiving...🔐"
-        STATUS_EXTRACTING = "Extracting...📂"
-        STATUS_SPLITTING = "Splitting...✂️"
-        STATUS_CHECKING = "CheckingUp...📝"
-        STATUS_SEEDING = "Seeding...🌧"
+        STATUS_UPLOADING = "📤 Upload"
+        STATUS_DOWNLOADING = "📥 Download"
+        STATUS_CLONING = "♻️ Clone"
+        STATUS_WAITING = "💤 Queue"
+        STATUS_PAUSED = "⛔️ Pause"
+        STATUS_ARCHIVING = "🔐 Archive"
+        STATUS_EXTRACTING = "📂 Extract"
+        STATUS_SPLITTING = "✂️ Split"
+        STATUS_CHECKING = "📝 CheckUp"
+        STATUS_SEEDING = "🌧 Seed"
     else:
-        STATUS_UPLOADING = "Uploading..."
-        STATUS_DOWNLOADING = "Downloading..."
-        STATUS_CLONING = "Cloning..."
-        STATUS_WAITING = "Queued..."
-        STATUS_PAUSED = "Paused..."
-        STATUS_ARCHIVING = "Archiving..."
-        STATUS_EXTRACTING = "Extracting..."
-        STATUS_SPLITTING = "Splitting..."
-        STATUS_CHECKING = "CheckingUp..."
-        STATUS_SEEDING = "Seeding..."
+        STATUS_UPLOADING = "Upload"
+        STATUS_DOWNLOADING = "Download"
+        STATUS_CLONING = "Clone"
+        STATUS_WAITING = "Queue"
+        STATUS_PAUSED = "Pause"
+        STATUS_ARCHIVING = "Archive"
+        STATUS_EXTRACTING = "Extract"
+        STATUS_SPLITTING = "Split"
+        STATUS_CHECKING = "CheckUp"
+        STATUS_SEEDING = "Seed"
 
 class EngineStatus:
     STATUS_ARIA = "Aria2c v1.35.0"
@@ -66,8 +66,6 @@ class EngineStatus:
     
 SIZE_UNITS = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 
-PROGRESS_MAX_SIZE = 100 // 9
-PROGRESS_INCOMPLETE = ['◔', '◔', '◑', '◑', '◑', '◕', '◕']
 
 class setInterval:
     def __init__(self, interval, action):
@@ -136,18 +134,34 @@ def bt_selection_buttons(id_: str):
     return InlineKeyboardMarkup(buttons.build_menu(2))
 
 
+def get_user_task(user_id):
+    user_task = 0
+    for task in list(download_dict.values()):
+        userid = task.message.from_user.id
+        if userid == user_id: user_task += 1
+    return user_task
+
+def progress_bar(percentage):
+    """Returns a progress bar for download"""
+    if isinstance(percentage, str):
+        return "NaN"
+    try:
+        percentage = int(percentage)
+    except Exception:
+        percentage = 0
+    comp = "█"
+    ncomp = "░"
+    return "".join(comp if i <= percentage // 10 else ncomp for i in range(1, 11))
+    
 def get_progress_bar_string(status):
     completed = status.processed_bytes() / 8
     total = status.size_raw() / 8
     p = 0 if total == 0 else round(completed * 100 / total)
     p = min(max(p, 0), 100)
     cFull = p // 8
-    cPart = p % 8 - 1
-    p_str = '⬤' * cFull
-    if cPart >= 0:
-        p_str += PROGRESS_INCOMPLETE[cPart]
-    p_str += '○' * (PROGRESS_MAX_SIZE - cFull)
-    p_str = f"「{p_str}」"
+    p_str = FINISHED_PROGRESS_STR * cFull
+    p_str += UN_FINISHED_PROGRESS_STR  * (12 - cFull)
+    p_str = f"[{p_str}]"
     return p_str
 
 def get_readable_message():
@@ -161,12 +175,12 @@ def get_readable_message():
                 globals()['COUNT'] -= STATUS_LIMIT
                 globals()['PAGE_NO'] -= 1
         for index, download in enumerate(list(download_dict.values())[COUNT:], start=1):
-            if EMOJI_THEME is True:
-                msg += f"<b>╭📁 Name:</b> <code>{escape(str(download.name()))}</code>"
-                msg += f"\n<b>├🤖 Status:</b> <i>{download.status()}</i>"
-            else:
-                msg += f"<b>╭ Name:</b> <code>{escape(str(download.name()))}</code>"
-                msg += f"\n<b>├ Status:</b> <i>{download.status()}</i>"
+            # if EMOJI_THEME is True:
+            msg += f"<b>╭ <a href='{download.message.link}'>{download.status()}</a>: </b>"
+            msg += f"<code>{escape(str(download.name()))}</code>"
+            # else:
+            #     msg += f"<b>╭ Name:</b> <code>{escape(str(download.name()))}</code>"
+            #     msg += f"\n<b>├ Status:</b> <i>{download.status()}</i>"
             if download.status() not in [MirrorStatus.STATUS_SEEDING, MirrorStatus.STATUS_SPLITTING]:
                 if EMOJI_THEME is True:
                     msg += f"\n<b>├</b>{get_progress_bar_string(download)} {download.progress()}"
@@ -244,36 +258,36 @@ def get_readable_message():
                 break
         if len(msg) == 0:
             return None, None
-        if EMOJI_THEME is True:
-            bmsg = f"<b>🖥 CPU:</b> {cpu_percent()}% | <b>💿 FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-            bmsg += f"\n<b>🎮 RAM:</b> {virtual_memory().percent}% | <b>🟢 ONLINE:</b> {get_readable_time(time() - botStartTime)}"
-        else:
-            bmsg = f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-            bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>ONLINE:</b> {get_readable_time(time() - botStartTime)}"
-        dlspeed_bytes = 0
-        upspeed_bytes = 0
+        dl_speed = 0
+        up_speed = 0
         for download in list(download_dict.values()):
             spd = download.speed()
             if download.status() == MirrorStatus.STATUS_DOWNLOADING:
+                spd = download.speed()
                 if 'K' in spd:
-                    dlspeed_bytes += float(spd.split('K')[0]) * 1024
+                    dl_speed += float(spd.split('K')[0]) * 1024
                 elif 'M' in spd:
-                    dlspeed_bytes += float(spd.split('M')[0]) * 1048576
+                    dl_speed += float(spd.split('M')[0]) * 1048576
             elif download.status() == MirrorStatus.STATUS_UPLOADING:
+                spd = download.speed()
                 if 'KB/s' in spd:
-                    upspeed_bytes += float(spd.split('K')[0]) * 1024
+                    up_speed += float(spd.split('K')[0]) * 1024
                 elif 'MB/s' in spd:
-                    upspeed_bytes += float(spd.split('M')[0]) * 1048576
+                    up_speed += float(spd.split('M')[0]) * 1048576
             elif download.status() == MirrorStatus.STATUS_SEEDING:
                 spd = download.upload_speed()
                 if 'K' in spd:
-                    upspeed_bytes += float(spd.split('K')[0]) * 1024
+                    up_speed += float(spd.split('K')[0]) * 1024
                 elif 'M' in spd:
-                    upspeed_bytes += float(spd.split('M')[0]) * 1048576
+                    up_speed += float(spd.split('M')[0]) * 1048576
         if EMOJI_THEME is True:
-            bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>🔺 UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
+            bmsg = f"<b>🖥 CPU:</b> {cpu_percent()}% | <b>💿 FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+            bmsg += f"\n<b>🎮 RAM:</b> {virtual_memory().percent}% | <b>🟢 UPTIME:</b> {get_readable_time(time() - botStartTime)}"
+            bmsg += f"\n<b>🔻 DL:</b> {get_readable_file_size(dl_speed)}/s | <b>🔺 UL:</b> {get_readable_file_size(up_speed)}/s"
         else:
-            bmsg += f"\n<b>DL:</b> {get_readable_file_size(dlspeed_bytes)}/s | <b>UL:</b> {get_readable_file_size(upspeed_bytes)}/s"
+            bmsg = f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+            bmsg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
+            bmsg += f"\n<b>DL:</b> {get_readable_file_size(dl_speed)}/s | <b>UL:</b> {get_readable_file_size(up_speed)}/s"
         
         buttons = ButtonMaker()
         buttons.sbutton("Refresh", "status refresh")
@@ -322,27 +336,6 @@ def turn(data):
     except:
         return False
 
-def secondsToText():
-    secs = AUTO_DELETE_UPLOAD_MESSAGE_DURATION
-    days = secs // 86400
-    hours = (secs - days * 86400) // 3600
-    minutes = (secs - days * 86400 - hours * 3600) // 60
-    seconds = secs - days * 86400 - hours * 3600 - minutes * 60
-    return (
-        ("{0} ᴅᴀʏ{1}, ".format(days, "s" if days != 1 else "") if days else "")
-        + ("{0} ʜᴏᴜʀ{1} ".format(hours, "s" if hours != 1 else "") if hours else "")
-        + (
-            "{0} ᴍɪɴᴜᴛᴇ{1} ".format(minutes, "s" if minutes != 1 else "")
-            if minutes
-            else ""
-        )
-        + (
-            "{0} sᴇᴄᴏɴᴅ{1} ".format(seconds, "s" if seconds != 1 else "")
-            if seconds
-            else ""
-        )
-    )
-
 def get_readable_time(seconds: int) -> str:
     result = ''
     (days, remainder) = divmod(seconds, 86400)
@@ -373,11 +366,8 @@ def is_gdtot_link(url: str):
     return bool(url)
 
 def is_unified_link(url: str):
-    url1 = re_match(r'https?://(anidrive|driveroot|driveflix|indidrive|drivehub)\.in/\S+', url)
-    url = re_match(r'https?://(appdrive|driveapp|driveace|gdflix|drivelinks|drivebit|drivesharer|drivepro)\.\S+', url)
-    if bool(url1) == True:
-        return bool(url1)
-    elif bool(url) == True:
+    url = re_match(r'https?://(appdrive|driveapp|driveace|gdflix|drivebit|drivesharer|drivepro)\.\S+', url)
+    if bool(url) == True:
         return bool(url)
     else:
         return False
@@ -388,9 +378,6 @@ def is_udrive_link(url: str):
     else:
         url = re_match(r'https?://(hubdrive|katdrive|kolop|drivefire|drivebuzz)\.\S+', url)
         return bool(url)
-
-def is_sharer_link(url: str):
-    url = re_match(r'https?://(sharer)\.pw/\S+', url)
 
 def is_mega_link(url: str):
     return "mega.nz" in url or "mega.co.nz" in url
@@ -440,27 +427,46 @@ def pop_up_stats(update, context):
     stats = bot_sys_stats()
     query.answer(text=stats, show_alert=True)
 def bot_sys_stats():
-    currentTime = get_readable_time(time() - botStartTime)
-    total, used, free, disk = disk_usage('/')
-    disk_t = get_readable_file_size(total)
-    disk_f = get_readable_file_size(free)
-    memory = virtual_memory()
-    mem_p = memory.percent
-    recv = get_readable_file_size(psutil.net_io_counters().bytes_recv)
-    sent = get_readable_file_size(psutil.net_io_counters().bytes_sent)
-    cpuUsage = cpu_percent(interval=1)
+        sent = get_readable_file_size(net_io_counters().bytes_recv)
+    recv = get_readable_file_size(net_io_counters().bytes_sent)
+    num_active = 0
+    num_upload = 0
+    num_seeding = 0
+    num_zip = 0
+    num_unzip = 0
+    num_split = 0
+    tasks = len(download_dict)
+    cpu = cpu_percent()
+    mem = virtual_memory().percent
+    disk = disk_usage("/").percent
+    for stats in list(download_dict.values()):
+        if stats.status() == MirrorStatus.STATUS_DOWNLOADING:
+            num_active += 1
+        if stats.status() == MirrorStatus.STATUS_UPLOADING:
+            num_upload += 1
+        if stats.status() == MirrorStatus.STATUS_SEEDING:
+            num_seeding += 1
+        if stats.status() == MirrorStatus.STATUS_ARCHIVING:
+            num_zip += 1
+        if stats.status() == MirrorStatus.STATUS_EXTRACTING:
+            num_unzip += 1
+        if stats.status() == MirrorStatus.STATUS_SPLITTING:
+            num_split += 1
     return f"""
-{TITLE_NAME} BOT STATS
-CPU:  {progress_bar(cpuUsage)} {cpuUsage}%
-RAM: {progress_bar(mem_p)} {mem_p}%
+{AUTHOR_NAME} Mirror Stats
+
+Tasks: {tasks}
+
+CPU: {progress_bar(cpu)} {cpu}%
+RAM: {progress_bar(mem)} {mem}%
 DISK: {progress_bar(disk)} {disk}%
-T: {disk_t}GB | F: {disk_f}GB
-Working For: {currentTime}
-T-DL: {recv} | T-UL: {sent}
-Made with ❤️ by Dipesh
+
+SENT: {sent} | RECV: {recv}
+
+DLs: {num_active} | ULs: {num_upload} | SEEDING: {num_seeding}
+ZIP: {num_zip} | UNZIP: {num_unzip} | SPLIT: {num_split}
 """
-
-
+    return stats
 dispatcher.add_handler(
     CallbackQueryHandler(pop_up_stats, pattern="^" + str(THREE) + "$")
 )

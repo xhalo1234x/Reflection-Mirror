@@ -8,6 +8,7 @@ def getCommand(name: str, command: str):
     except KeyError:
         return command
 
+
 class _BotCommands:
     def __init__(self):
         self.StartCommand = getCommand(f'START_COMMAND', f'start{CMD_INDEX}')
@@ -64,6 +65,5 @@ class _BotCommands:
         self.ExecCommand = f'exec{CMD_INDEX}'
         self.ClearLocalsCommand = f'clearlocals{CMD_INDEX}'
         self.SleepCommand = getCommand('SLEEP_COMMAND', f'sleep{CMD_INDEX}')
-        self.PreNameCommand = f'prename{CMD_INDEX}'
 
 BotCommands = _BotCommands()

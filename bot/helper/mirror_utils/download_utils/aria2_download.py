@@ -1,6 +1,6 @@
 from time import sleep, time
-from os import remove
-from bot import TELEGRAPH_STYLE, aria2, download_dict_lock, download_dict, STOP_DUPLICATE, BASE_URL, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, LOGGER, STORAGE_THRESHOLD
+from os import remove, path as ospath
+from bot import LEECH_LIMIT, TELEGRAPH_STYLE, aria2, download_dict_lock, download_dict, STOP_DUPLICATE, BASE_URL, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, LEECH_LIMIT, LOGGER, STORAGE_THRESHOLD
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.ext_utils.bot_utils import is_magnet, getDownloadByGid, new_thread, bt_selection_buttons, get_readable_file_size
 from bot.helper.mirror_utils.status_utils.aria_download_status import AriaDownloadStatus
@@ -28,11 +28,11 @@ def __onDownloadStarted(api, gid):
     else:
         LOGGER.info(f'onDownloadStarted: {download.name} - Gid: {gid}')
     try:
-        if any([STOP_DUPLICATE, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD]):
+        if any([STOP_DUPLICATE, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, LEECH_LIMIT, STORAGE_THRESHOLD]):
             sleep(1)
             if dl := getDownloadByGid(gid):
                 listener = dl.listener()
-                if listener.isLeech or listener.select:
+                if listener.select:
                     return
                 download = api.get_download(gid)
                 if not download.is_torrent:
@@ -66,7 +66,8 @@ def __onDownloadStarted(api, gid):
                             cap = f"Here are the search results:\n\n{cap}"
                             sendFile(listener.bot, listener.message, f_name, cap)
                             return
-            if any([ZIP_UNZIP_LIMIT, TORRENT_DIRECT_LIMIT, STORAGE_THRESHOLD]):
+
+            if any([ZIP_UNZIP_LIMIT, LEECH_LIMIT, TORRENT_DIRECT_LIMIT, STORAGE_THRESHOLD]):
                 sleep(1)
                 limit = None
                 size = download.total_length
@@ -82,6 +83,9 @@ def __onDownloadStarted(api, gid):
                 if ZIP_UNZIP_LIMIT is not None and arch:
                     mssg = f'Zip/Unzip limit is {ZIP_UNZIP_LIMIT}GB'
                     limit = ZIP_UNZIP_LIMIT
+                if LEECH_LIMIT is not None and arch:
+                    mssg = f'Leech limit is {LEECH_LIMIT}GB'
+                    limit = LEECH_LIMIT
                 elif TORRENT_DIRECT_LIMIT is not None:
                     mssg = f'Torrent/Direct limit is {TORRENT_DIRECT_LIMIT}GB'
                     limit = TORRENT_DIRECT_LIMIT
@@ -134,9 +138,10 @@ def __onBtDownloadComplete(api, gid):
         if listener.select:
             res = download.files
             for file_o in res:
-                if not file_o.selected:
+                f_path = file_o.path
+                if not file_o.selected and ospath.exists(f_path):
                     try:
-                        remove(file_o.path)
+                        remove(f_path)
                     except:
                         pass
             clean_unwanted(download.dir)
@@ -145,6 +150,8 @@ def __onBtDownloadComplete(api, gid):
                 api.set_options({'max-upload-limit': '0'}, [download])
             except Exception as e:
                 LOGGER.error(f'{e} You are not able to seed because you added global option seed-time=0 without adding specific seed_time for this torrent')
+        else:
+            api.client.force_pause(gid)
         listener.onDownloadComplete()
         if listener.seed:
             with download_dict_lock:

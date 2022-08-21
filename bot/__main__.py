@@ -9,7 +9,7 @@ from telegram.ext import CommandHandler
 import requests
 import pytz
 from bot import bot, dispatcher, updater, botStartTime, TIMEZONE, IGNORE_PENDING_REQUESTS, LOGGER, Interval, INCOMPLETE_TASK_NOTIFIER, \
-                    DB_URI, alive, app, main_loop, HEROKU_API_KEY, HEROKU_APP_NAME, SET_BOT_COMMANDS, AUTHORIZED_CHATS
+                    DB_URI, alive, app, main_loop, HEROKU_API_KEY, HEROKU_APP_NAME, SET_BOT_COMMANDS, AUTHORIZED_CHATS, EMOJI_THEME
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time
@@ -20,7 +20,7 @@ from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 from bot.modules.wayback import getRandomUserAgent
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, shell, eval, \
-                    delete, count, leech_settings, search, rss, wayback, speedtest, usage, anilist, bt_select, mediainfo, hash, sleep, addons
+                    delete, count, leech_settings, search, rss, wayback, speedtest, usage, anilist, bt_select, mediainfo, hash, sleep
 from datetime import datetime
 
 try: import heroku3
@@ -59,12 +59,20 @@ def getHerokuDetails(h_api_key, h_app_name):
         account_quota = result["account_quota"]
         quota_used = result["quota_used"]
         quota_remain = account_quota - quota_used
-        abc += f'<b></b>\n'
-        abc += f'<b>╭─《🌐 HEROKU STATS 🌐》</b>\n'
-        abc += f'<b>│</b>\n'
-        abc += f"<b>├ 💪🏻 FULL</b>: {get_readable_time(account_quota)}\n"
-        abc += f"<b>├ 👎🏻 USED</b>: {get_readable_time(quota_used)}\n"
-        abc += f"<b>├ 👍🏻 FREE</b>: {get_readable_time(quota_remain)}\n"
+        if EMOJI_THEME is True:
+            abc += f'<b></b>\n'
+            abc += f'<b>╭─《🌐 HEROKU STATS 🌐》</b>\n'
+            abc += f'<b>│</b>\n'
+            abc += f"<b>├ 💪🏻 FULL</b>: {get_readable_time(account_quota)}\n"
+            abc += f"<b>├ 👎🏻 USED</b>: {get_readable_time(quota_used)}\n"
+            abc += f"<b>├ 👍🏻 FREE</b>: {get_readable_time(quota_remain)}\n"
+        else:
+            abc += f'<b></b>\n'
+            abc += f'<b>╭─《 HEROKU STATS 》</b>\n'
+            abc += f'<b>│</b>\n'
+            abc += f"<b>├ FULL</b>: {get_readable_time(account_quota)}\n"
+            abc += f"<b>├ USED</b>: {get_readable_time(quota_used)}\n"
+            abc += f"<b>├ FREE</b>: {get_readable_time(quota_remain)}\n"
         # App Quota
         AppQuotaUsed = 0
         OtherAppsUsage = 0
@@ -84,10 +92,16 @@ def getHerokuDetails(h_api_key, h_app_name):
                     LOGGER.error(t)
                     pass
         LOGGER.info(f"This App: {str(app.name)}")
-        abc += f"<b>├ 🎃 APP USAGE:</b> {get_readable_time(AppQuotaUsed)}\n"
-        abc += f"<b>├ 🗑️ OTHER APP:</b> {get_readable_time(OtherAppsUsage)}\n"
-        abc += f'<b>│</b>\n'
-        abc += f'<b>╰─《 ☣️ @dipeshmirror ☣️ 》</b>'
+        if EMOJI_THEME is True:
+            abc += f"<b>├ 🎃 APP USAGE:</b> {get_readable_time(AppQuotaUsed)}\n"
+            abc += f"<b>├ 🗑️ OTHER APP:</b> {get_readable_time(OtherAppsUsage)}\n"
+            abc += f'<b>│</b>\n'
+            abc += f'<b>╰─《 ☣️ @toxytech ☣️ 》</b>'
+        else:
+            abc += f"<b>├ APP USAGE:</b> {get_readable_time(AppQuotaUsed)}\n"
+            abc += f"<b>├ OTHER APP:</b> {get_readable_time(OtherAppsUsage)}\n"
+            abc += f'<b>│</b>\n'
+            abc += f'<b>╰─《 @toxytech 》</b>'
         return abc
     except Exception as g:
         LOGGER.error(g)
@@ -99,30 +113,18 @@ IMAGE_X = "https://graph.org/file/9c2c7250397f4ed2eed20.jpg"
 
 now=datetime.now(pytz.timezone(f'{TIMEZONE}'))
 
-def progress_bar(percentage):
-    p_used = "⬢"
-    p_total = "⬡"
-    if isinstance(percentage, str):
-        return "NaN"
-    try:
-        percentage = int(percentage)
-    except BaseException:
-        percentage = 0
-    return "".join(p_used if i <= percentage // 10 else p_total for i in range(1, 11))
-
-
 def stats(update, context):
-    if ospath.exists(".git"):
-        last_commit = check_output(
-            ["git log -1 --date=short --pretty=format:'%cd \n├ 🛠<b>From</b> %cr'"],
-            shell=True,
-        ).decode()
+    if ospath.exists('.git'):
+        if EMOJI_THEME is True:
+            last_commit = check_output(["git log -1 --date=short --pretty=format:'%cd \n<b>├</b> 🛠<b>From</b> %cr'"], shell=True).decode()
+        else:
+            last_commit = check_output(["git log -1 --date=short --pretty=format:'%cd \n<b>├</b> <b>From</b> %cr'"], shell=True).decode()
     else:
-        last_commit = "No UPSTREAM_REPO"
+        last_commit = 'No UPSTREAM_REPO'
     currentTime = get_readable_time(time() - botStartTime)
-    current = now.strftime("%m/%d %I:%M:%S %p")
+    current = now.strftime('%m/%d %I:%M:%S %p')
     osUptime = get_readable_time(time() - boot_time())
-    total, used, free, disk = disk_usage("/")
+    total, used, free, disk= disk_usage('/')
     total = get_readable_file_size(total)
     used = get_readable_file_size(used)
     free = get_readable_file_size(free)
@@ -139,55 +141,76 @@ def stats(update, context):
     mem_t = get_readable_file_size(memory.total)
     mem_a = get_readable_file_size(memory.available)
     mem_u = get_readable_file_size(memory.used)
-    stats = (
-        f"<b>╭─《🌐 BOT STATISTICS 🌐》</b>\n"
-        f"<b>│</b>\n"
-        f"<b>├ 🛠 𝙲𝙾𝙼𝙼𝙸𝚃 𝙳𝙰𝚃𝙴:</b> {last_commit}\n"
-        f"<b>├ 🟢 𝙾𝙽𝙻𝙸𝙽𝙴 𝚃𝙸𝙼𝙴:</b> {currentTime}\n"
-        f"<b>├ 🟢 Sᴛᴀʀᴛᴇᴅ Aᴛ:</b> {current}\n"
-        f"<b>├ ☠️ 𝙾𝚂 𝚄𝙿𝚃𝙸𝙼𝙴:</b> {osUptime}\n"
-        f"<b>├ 💾 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴:</b> {total}\n"
-        f"<b>├ 📀 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝚄𝚂𝙴𝙳:</b> {used}\n"
-        f"<b>├ 💿 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝙵𝚁𝙴𝙴:</b> {free}\n"
-        f"<b>├ 🔺 𝚄𝙿𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {sent}\n"
-        f"<b>├ 🔻 𝙳𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {recv}\n"
-        f"<b>├ 🖥️ 𝙲𝙿𝚄 𝚄𝚂𝙰𝙶𝙴:</b> {progress_bar(cpuUsage)} {cpuUsage}%\n"
-        f"<b>├ 🎮 𝚁𝙰𝙼:</b> {progress_bar(mem_p)} {mem_p}%\n"
-        f"<b>├ 👸 𝙳𝙸𝚂𝙺 𝚄𝚂𝙴𝙳:</b> {progress_bar(disk)} {disk}%\n\n"
-        f"<b>├ 💽 𝙿𝙷𝚈𝚂𝙸𝙲𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {p_core}\n"
-        f"<b>├ 🍥 𝚃𝙾𝚃𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {t_core}\n"
-        f"<b>├ ✳ 𝚂𝚆𝙰𝙿:</b> {swap_t}\n"
-        f"<b>├ 👸 𝚂𝚆𝙰𝙿 𝚄𝚂𝙴𝙳:</b> {swap_p}%\n"
-        f"<b>├ ☁ 𝚃𝙾𝚃𝙰𝙻 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_t}\n"
-        f"<b>├ 💃 𝙵𝚁𝙴𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_a}\n"
-        f"<b>╰ 👰 𝚄𝚂𝙰𝙶𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_u}\n"
-    )
-    heroku = getHerokuDetails(HEROKU_API_KEY, HEROKU_APP_NAME)
-    if heroku:
-        stats += heroku
+    if EMOJI_THEME is True:
+            stats = f'<b>╭─《🌐 BOT STATISTICS 🌐》</b>\n' \
+                    f'<b>│</b>\n' \
+                    f'<b>├ 🛠 𝙲𝙾𝙼𝙼𝙸𝚃 𝙳𝙰𝚃𝙴:</b> {last_commit}\n'\
+                    f'<b>├ 🟢 𝙾𝙽𝙻𝙸𝙽𝙴 𝚃𝙸𝙼𝙴:</b> {currentTime}\n'\
+                    f'<b>├ 🟢 Sᴛᴀʀᴛᴇᴅ Aᴛ:</b> {current}\n'\
+                    f'<b>├ ☠️ 𝙾𝚂 𝚄𝙿𝚃𝙸𝙼𝙴:</b> {osUptime}\n'\
+                    f'<b>├ 💾 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴:</b> {total}\n'\
+                    f'<b>├ 📀 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝚄𝚂𝙴𝙳:</b> {used}\n'\
+                    f'<b>├ 💿 𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝙵𝚁𝙴𝙴:</b> {free}\n'\
+                    f'<b>├ 🔺 𝚄𝙿𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {sent}\n'\
+                    f'<b>├ 🔻 𝙳𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {recv}\n'\
+                    f'<b>├ 🖥️ 𝙲𝙿𝚄 𝚄𝚂𝙰𝙶𝙴:</b> {cpuUsage}%\n'\
+                    f'<b>├ 🎮 𝚁𝙰𝙼:</b> {mem_p}%\n'\
+                    f'<b>├ 👸 𝙳𝙸𝚂𝙺 𝚄𝚂𝙴𝙳:</b> {disk}%\n'\
+                    f'<b>├ 💽 𝙿𝙷𝚈𝚂𝙸𝙲𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {p_core}\n'\
+                    f'<b>├ 🍥 𝚃𝙾𝚃𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {t_core}\n'\
+                    f'<b>├ ✳ 𝚂𝚆𝙰𝙿:</b> {swap_t}\n'\
+                    f'<b>├ 👸 𝚂𝚆𝙰𝙿 𝚄𝚂𝙴𝙳:</b> {swap_p}%\n'\
+                    f'<b>├ ☁ 𝚃𝙾𝚃𝙰𝙻 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_t}\n'\
+                    f'<b>├ 💃 𝙵𝚁𝙴𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_a}\n'\
+                    f'<b>╰ 👰 𝚄𝚂𝙰𝙶𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_u}\n'
+    else:
+            stats = f'<b>╭─《 BOT STATISTICS 》</b>\n' \
+                    f'<b>│</b>\n' \
+                    f'<b>├  𝙲𝙾𝙼𝙼𝙸𝚃 𝙳𝙰𝚃𝙴:</b> {last_commit}\n'\
+                    f'<b>├  𝙾𝙽𝙻𝙸𝙽𝙴 𝚃𝙸𝙼𝙴:</b> {currentTime}\n'\
+                    f'<b>├  Sᴛᴀʀᴛᴇᴅ Aᴛ:</b> {current}\n'\
+                    f'<b>├  𝙾𝚂 𝚄𝙿𝚃𝙸𝙼𝙴:</b> {osUptime}\n'\
+                    f'<b>├  𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴:</b> {total}\n'\
+                    f'<b>├  𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝚄𝚂𝙴𝙳:</b> {used}\n'\
+                    f'<b>├  𝙳𝙸𝚂𝙺 𝚂𝙿𝙰𝙲𝙴 𝙵𝚁𝙴𝙴:</b> {free}\n'\
+                    f'<b>├  𝚄𝙿𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {sent}\n'\
+                    f'<b>├  𝙳𝙾𝚆𝙽𝙻𝙾𝙰𝙳 𝙳𝙰𝚃𝙰:</b> {recv}\n'\
+                    f'<b>├  𝙲𝙿𝚄 𝚄𝚂𝙰𝙶𝙴:</b> {cpuUsage}%\n'\
+                    f'<b>├  𝚁𝙰𝙼:</b> {mem_p}%\n'\
+                    f'<b>├  𝙳𝙸𝚂𝙺 𝚄𝚂𝙴𝙳:</b> {disk}%\n'\
+                    f'<b>├  𝙿𝙷𝚈𝚂𝙸𝙲𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {p_core}\n'\
+                    f'<b>├  𝚃𝙾𝚃𝙰𝙻 𝙲𝙾𝚁𝙴𝚂:</b> {t_core}\n'\
+                    f'<b>├  𝚂𝚆𝙰𝙿:</b> {swap_t}\n'\
+                    f'<b>├  𝚂𝚆𝙰𝙿 𝚄𝚂𝙴𝙳:</b> {swap_p}%\n'\
+                    f'<b>├  𝚃𝙾𝚃𝙰𝙻 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_t}\n'\
+                    f'<b>├  𝙵𝚁𝙴𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_a}\n'\
+                    f'<b>╰  𝚄𝚂𝙰𝙶𝙴 𝙾𝙵 𝙼𝙴𝙼𝙾𝚁𝚈:</b> {mem_u}\n'
 
+                
+
+    heroku = getHerokuDetails(HEROKU_API_KEY, HEROKU_APP_NAME)
+    if heroku: stats += heroku 
+           
     update.effective_message.reply_photo(IMAGE_X, stats, parse_mode=ParseMode.HTML)
 
 
 def start(update, context):
     buttons = ButtonMaker()
-    buttons.buildbutton("😎 Master", "https://t.me/toxytech")
-    buttons.buildbutton("🙋 Mirror Group", "https://t.me/dipeshmirror")
-    buttons.buildbutton("🇮🇳 Support Group", "https://t.me/mirrorsociety")
+    if EMOJI_THEME is True:
+        buttons.buildbutton("😎 Master", "https://t.me/ToxyTech ")
+        buttons.buildbutton("🔥 Group", "https://t.me/DipeshMirror")
+    else:
+        buttons.buildbutton("Master", "https://t.me/ToxyTech ")
+        buttons.buildbutton("Group", "https://t.me/DipeshMirror")
     reply_markup = InlineKeyboardMarkup(buttons.build_menu(2))
     if CustomFilters.authorized_user(update) or CustomFilters.authorized_chat(update):
-        start_string = f"""
-This bot can mirror all your links to Google Drive And Leech Files To Telegram!
+        start_string = f'''
+This bot can mirror all your links to Google Drive!
 Type /{BotCommands.HelpCommand} to get a list of available commands
-"""
+'''
         sendMarkup(start_string, context.bot, update.message, reply_markup)
     else:
-        sendMarkup(
-            "Not Authorized user, deploy your own mirror-leech bot",
-            context.bot,
-            update.message,
-            reply_markup,
-        )
+        sendMarkup('Not Authorized user, deploy your own mirror-leech bot', context.bot, update.message, reply_markup)
 
 def restart(update, context):
     cmd = update.effective_message.text.split(' ', 1)
@@ -227,7 +250,7 @@ def restart(update, context):
             Interval.clear()
         alive.kill()
         clean_all()
-        srun(["pkill", "-9", "-f", "gunicorn|extra-api|last-api|megasdkrest|new-api"])
+        srun(["pkill", "-9", "-f", "gunicorn|chrome|firefox|megasdkrest"])
         srun(["python3", "update.py"])
         with open(".restartmsg", "w") as f:
             f.truncate(0)
@@ -237,10 +260,16 @@ def restart(update, context):
 
 
 def ping(update, context):
-    start_time = int(round(time() * 1000))
-    reply = sendMessage("Starting_Ping ⛔", context.bot, update.message)
-    end_time = int(round(time() * 1000))
-    editMessage(f'{end_time - start_time} ms 🔥', reply)
+    if EMOJI_THEME is True:
+        start_time = int(round(time() * 1000))
+        reply = sendMessage("Starting_Ping ⛔", context.bot, update.message)
+        end_time = int(round(time() * 1000))
+        editMessage(f'{end_time - start_time} ms 🔥', reply)
+    else:
+        start_time = int(round(time() * 1000))
+        reply = sendMessage("Starting_Ping ", context.bot, update.message)
+        end_time = int(round(time() * 1000))
+        editMessage(f'{end_time - start_time} ms ', reply)
 
 
 def log(update, context):
@@ -248,7 +277,7 @@ def log(update, context):
 
 
 help_string = '''
-<b><a href='https://t.me/dipeshmirror'>ReflecrionMirror</a></b> - The Ultimate Telegram MIrror-Leech Bot to Upload Your File & Link in Google Drive & Telegram
+<b><a href='https://github.com/Reflection-Mirror/Reflection-Mirror'>DipeshMirror</a></b> - The Ultimate Telegram MIrror-Leech Bot to Upload Your File & Link in Google Drive & Telegram
 Choose a help category:
 '''
 
@@ -329,7 +358,7 @@ help_string_telegraph_user = f'''
 '''
 
 help_user = telegraph.create_page(
-    title='😄 ReflecrionMirror Help 😄',
+    title='DipeshMirror Help',
     content=help_string_telegraph_user)["path"]
 
 help_string_telegraph_admin = f'''
@@ -353,13 +382,17 @@ help_string_telegraph_admin = f'''
 '''
 
 help_admin = telegraph.create_page(
-    title='😄 Reflection-Mirror Help',
+    title='DipeshMirror Help',
     content=help_string_telegraph_admin)["path"]
 
 def bot_help(update, context):
     button = ButtonMaker()
-    button.buildbutton("👤 User", f"https://graph.org/{help_user}")
-    button.buildbutton("🛡️ Admin", f"https://graph.org/{help_admin}")
+    if EMOJI_THEME is True:
+        button.buildbutton("👤 User", f"https://graph.org/{help_user}")
+        button.buildbutton("🛡️ Admin", f"https://graph.org/{help_admin}")
+    else:
+        button.buildbutton("User", f"https://graph.org/{help_user}")
+        button.buildbutton("Admin", f"https://graph.org/{help_admin}")
     sendMarkup(help_string, context.bot, update.message, InlineKeyboardMarkup(button.build_menu(2)))
 
        
@@ -429,7 +462,7 @@ def main():
                          msg += f" <a href='{link}'>{index}</a> |"
                          if len(msg.encode()) > 4000:
                              if '😎Restarted successfully❗' in msg and cid == chat_id:
-                                 bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTMl', disable_web_page_preview=True)
+                                 bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                                  osremove(".restartmsg")
                              else:
                                  try:
@@ -438,7 +471,7 @@ def main():
                                      LOGGER.error(e)
                              msg = ''
                 if '😎Restarted successfully❗' in msg and cid == chat_id:
-                     bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTMl', disable_web_page_preview=True)
+                     bot.editMessageText(msg, chat_id, msg_id, parse_mode='HTML', disable_web_page_preview=True)
                      osremove(".restartmsg")
                 else:
                     try:

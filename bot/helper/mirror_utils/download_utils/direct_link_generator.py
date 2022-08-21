@@ -14,7 +14,7 @@ import requests
 import re
 from base64 import b64decode
 from urllib.parse import urlparse, unquote, parse_qs
-from json import loads as jsnloads
+from json import loads as jsonloads
 from lk21 import Bypass
 from lxml import etree
 from cfscrape import create_scraper
@@ -24,7 +24,7 @@ from base64 import standard_b64encode
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 
-from bot import LOGGER, UPTOBOX_TOKEN, CRYPT, UNIFIED_EMAIL, UNIFIED_PASS, HUBDRIVE_CRYPT, KATDRIVE_CRYPT, DRIVEFIRE_CRYPT, XSRF_TOKEN, laravel_session
+from bot import LOGGER, UPTOBOX_TOKEN, CRYPT, UNIFIED_EMAIL, UNIFIED_PASS, HUBDRIVE_CRYPT, KATDRIVE_CRYPT, DRIVEFIRE_CRYPT
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.ext_utils.bot_utils import *
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -36,7 +36,7 @@ fmed_list = ['fembed.net', 'fembed.com', 'femax20.com', 'fcdn.stream', 'feurl.co
 def direct_link_generator(link: str):
     """ direct links generator """
     if 'youtube.com' in link or 'youtu.be' in link:
-        raise DirectDownloadLinkException(f"ERROR: Use /{BotCommands.WatchCommand} to mirror Youtube link\nUse /{BotCommands.ZipWatchCommand} to make zip of Youtube playlist")
+        raise DirectDownloadLinkException("ERROR: Use /{BotCommands.WatchCommand} to mirror Youtube link\nUse /{BotCommands.ZipWatchCommand} to make zip of Youtube playlist")
     elif 'zippyshare.com' in link:
         return zippy_share(link)
     elif 'yadi.sk' in link or 'disk.yandex.com' in link:
@@ -79,8 +79,6 @@ def direct_link_generator(link: str):
         return unified(link)
     elif is_udrive_link(link):
         return udrive(link)
-    elif is_sharer_link(link):
-        return sharer_pw_dl(link)
     elif any(x in link for x in fmed_list):
         return fembed(link)
     elif any(x in link for x in ['sbembed.com', 'watchsb.com', 'streamsb.net', 'sbplay.org']):
@@ -335,7 +333,7 @@ def solidfiles(url: str) -> str:
     }
     pageSource = rget(url, headers = headers).text
     mainOptions = str(re_search(r'viewerOptions\'\,\ (.*?)\)\;', pageSource).group(1))
-    return jsnloads(mainOptions)["downloadUrl"]
+    return jsonloads(mainOptions)["downloadUrl"]
 
 def krakenfiles(page_link: str) -> str:
     """ krakenfiles direct link generator
@@ -485,12 +483,6 @@ def parse_info(res, url):
     info_parsed = {}
     if 'drivebuzz' in url:
         info_chunks = re.findall('<td\salign="right">(.*?)<\/td>', res.text)
-    elif 'sharer.pw' in url:
-        f = re_findall(">(.*?)<\/td>", res.text)
-        info_parsed = {}
-        for i in range(0, len(f), 3):
-          info_parsed[f[i].lower().replace(' ', '_')] = f[i+2]
-          return info_parsed
     else:
         info_chunks = re_findall('>(.*?)<\/td>', res.text)
     for i in range(0, len(info_chunks), 2):
@@ -547,10 +539,6 @@ def udrive(url: str) -> str:
         gd_id = res.rsplit("=", 1)[-1]
         flink = f"https://drive.google.com/open?id={gd_id}"
         return flink
-    elif 'vickyshare' in url:
-        decoded_id = res.rsplit('/', 1)[-1]
-        flink = f"https://drive.google.com/file/d/{decoded_id}"
-        return flink
     elif 'drivebuzz' in url:
         gd_id = res.rsplit("=", 1)[-1]
         flink = f"https://drive.google.com/open?id={gd_id}"
@@ -563,57 +551,3 @@ def udrive(url: str) -> str:
     flink = info_parsed['gdrive_url']
 
     return flink 
-
-
-def sharer_pw(url, forced_login=False):
-    client = cloudscraper.create_scraper(delay=10, browser='chrome')
-
-    client.cookies.update({
-        "XSRF-TOKEN": XSRF_TOKEN,
-        "laravel_session": laravel_session
-    })
-
-    res = client.get(url)
-    soup = BeautifulSoup(res.text, "lxml")
-    token = re_findall("token\s=\s'(.*?)'", res.text, re.DOTALL)[0]
-
-    ddl_btn = etree.HTML(res.content).xpath("//button[@id='btndirect']")
-
-    info_parsed = parse_info(res, url)
-    info_parsed['error'] = True
-    info_parsed['src_url'] = url
-    info_parsed['link_type'] = 'login' # direct/login
-    info_parsed['forced_login'] = forced_login
-
-    headers = {
-        'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        'x-requested-with': 'XMLHttpRequest'
-    }
-
-    data = {
-        '_token': token
-    }
-
-    if len(ddl_btn):
-        info_parsed['link_type'] = 'direct'
-    if not forced_login:
-        data['nl'] = 1
-
-    try: 
-        res = client.post(url+'/dl', headers=headers, data=data).json()
-    except:
-        return info_parsed
-
-    if 'url' in res and res['url']:
-        info_parsed['error'] = False
-        info_parsed['gdrive_link'] = res['url']
-
-    if len(ddl_btn) and not forced_login and not 'url' in info_parsed:
-        # retry download via login
-        return sharer_pw(url, forced_login=True)
-
-    try:
-        flink = info_parsed['gdrive_link']
-        return flink
-    except:
-        raise DirectDownloadLinkException("ERROR! File Not Found or User rate exceeded !!")

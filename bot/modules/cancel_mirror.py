@@ -63,6 +63,11 @@ def cancell_all_buttons(update, context):
     Thread(target=auto_delete_message, args=(context.bot, update.message, can_msg)).start()
 
 def cancel_all_update(update, context):
+    with download_dict_lock:
+        count = len(download_dict)
+    if count == 0:
+        sendMessage("No active tasks!", context.bot, update.message)
+        return
     query = update.callback_query
     user_id = query.from_user.id
     data = query.data

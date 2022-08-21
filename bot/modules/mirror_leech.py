@@ -1,4 +1,5 @@
 from base64 import b64encode
+from pyrogram import enums
 from re import match as re_match, search as re_search, split as re_split
 from time import sleep, time
 from os import path as ospath, remove as osremove, listdir, walk
@@ -10,7 +11,7 @@ from telegram.ext import CommandHandler
 from telegram import InlineKeyboardMarkup, ParseMode, InlineKeyboardButton
 
 from bot import *
-from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_gdtot_link, is_mega_link, is_gdrive_link, is_unified_link, is_udrive_link, is_sharer_link, get_content_type, get_readable_time
+from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_gdtot_link, is_mega_link, is_gdrive_link, is_unified_link, is_udrive_link, get_content_type, get_readable_time, get_user_task
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException, NotSupportedExtractionArchive
 from bot.helper.ext_utils.shortenurl import short_url
 from bot.helper.mirror_utils.download_utils.aria2_download import add_aria2c_download
@@ -21,14 +22,15 @@ from bot.helper.mirror_utils.download_utils.direct_link_generator import direct_
 from bot.helper.mirror_utils.download_utils.telegram_downloader import TelegramDownloadHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages, auto_delete_upload_message
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages, auto_delete_upload_message, auto_delete_message
 from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from .listener import MirrorLeechListener
 
 
-def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False, multi=0):
-    buttons = ButtonMaker()	
+def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeech=False):
+    buttons = ButtonMaker()
+	
     if FSUB:
         try:
             user = bot.get_chat_member(f"{FSUB_CHANNEL_ID}", message.from_user.id)
@@ -42,66 +44,48 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 chat_u = CHANNEL_USERNAME.replace("@", "")
                 buttons.buildbutton("👉🏻 CHANNEL LINK 👈🏻", f"https://t.me/{chat_u}")
                 help_msg = f"Dᴇᴀʀ {uname},\nYᴏᴜ ɴᴇᴇᴅ ᴛᴏ ᴊᴏɪɴ ᴍʏ Cʜᴀɴɴᴇʟ ᴛᴏ ᴜsᴇ Bᴏᴛ \n\nCʟɪᴄᴋ ᴏɴ ᴛʜᴇ ʙᴇʟᴏᴡ Bᴜᴛᴛᴏɴ ᴛᴏ ᴊᴏɪɴ ᴍʏ Cʜᴀɴɴᴇʟ."
-                reply_message = sendMarkup(
-                    help_msg, bot, message, InlineKeyboardMarkup(buttons.build_menu(2))
-                )
-                Thread(
-                    target=auto_delete_message, args=(bot, message, reply_message)
-                ).start()
+                reply_message = sendMarkup(help_msg, bot, message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                Thread(target=auto_delete_message, args=(bot, message, reply_message)).start()
                 return reply_message
         except Exception:
             pass
-    if BOT_PM and message.chat.type != "private":
+    if BOT_PM and message.chat.type != 'private':
         try:
-            msg1 = f"Lɪɴᴋ Aᴅᴅᴇᴅ"
-            send = bot.sendMessage(
-                message.from_user.id,
-                text=msg1,
-            )
+            msg1 = f'Added your Requested link to Download\n'
+            send = bot.sendMessage(message.from_user.id, text=msg1)
             send.delete()
         except Exception as e:
             LOGGER.warning(e)
-            if message.from_user.username:
-                uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.username}</a>'
-            else:
-                uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
-            buttons = ButtonMaker()
-            buttons.buildbutton(
-                "👉🏻 Sᴛᴀʀᴛ Bᴏᴛ 👈🏻", f"https://t.me/{bot.get_me().username}?start=start"
-            )
-            help_msg = f"Dᴇᴀʀ {uname},\nYᴏᴜ ɴᴇᴇᴅ ᴛᴏ Sᴛᴀʀᴛ Bᴏᴛ ᴜꜱɪɴɢ ʙᴇʟᴏᴡ ʙᴜᴛᴛᴏɴ. \n\nIᴛꜱ ɴᴇᴇᴅᴇᴅ ꜱᴏ ʙᴏᴛ ᴄᴀɴ ꜱᴇɴᴅ ʏᴏᴜʀ ᴍɪʀʀᴏʀ/ᴄʟᴏɴᴇ/ʟᴇᴇᴄʜᴇᴅ ꜰɪʟᴇꜱ ɪɴ ᴘᴍ. \n\nCʟɪᴄᴋ ᴏɴ ʙᴇʟᴏᴡ ʙᴜᴛᴛᴏɴ ᴛᴏ Sᴛᴀʀᴛ Bᴏᴛ"
-            reply_message = sendMarkup(
-                help_msg, bot, message, InlineKeyboardMarkup(buttons.build_menu(2))
-            )
-            Thread(
-                target=auto_delete_message, args=(bot, message, reply_message)
-            ).start()
-            return reply_message
-    if isLeech and len(LEECH_LOG) == 0:
-        try:
-            text = "Eʀʀᴏʀ﹕ Lᴇᴇᴄʜ Fᴜɴᴄᴛɪᴏɴᴀʟɪᴛʏ ᴡɪʟʟ ɴᴏᴛ ᴡᴏʀᴋ\n Rᴇᴀsᴏɴ﹕ Yᴏᴜʀ Lᴇᴇᴄʜ Lᴏɢ ᴠᴀʀ ɪs ᴇᴍᴘᴛʏ.\n\nRᴇᴀᴅ ᴛʜᴇ README ꜰɪʟᴇ ɪᴛ's ᴛʜᴇʀᴇ ꜰᴏʀ ᴀ ʀᴇᴀsᴏɴ."
-            reply_message = sendMessage(text, bot, message)
-            LOGGER.error(
-                "Leech Log var is Empty. Kindly add Chat id in Leech log to use Leech Functionality"
-            )
-            Thread(
-                target=auto_delete_message, args=(bot, message, reply_message)
-            ).start()
-            return reply_message
-        except Exception as err:
-            LOGGER.error(f"Error: \n{err}")
+            bot_d = bot.get_me()
+            b_uname = bot_d.username
+            uname = f'<a href="tg://user?id={message.from_user.id}">{message.from_user.first_name}</a>'
+            botstart = f"http://t.me/{b_uname}"
+            buttons.buildbutton("Click Here to Start Me", f"{botstart}")
+            startwarn = f"Dear {uname},\n\n<b>I found that you haven't started me in PM (Private Chat) yet.</b>\n\n" \
+                        f"From now on i will give link and leeched files in PM and log channel only"
+            message = sendMarkup(startwarn, bot, message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            return
+
+    total_task = len(download_dict)
+    user_id = message.from_user.id
+    if user_id != OWNER_ID and user_id not in SUDO_USERS:
+            if TOTAL_TASKS_LIMIT == total_task:
+                return sendMessage(f"<b>Bot Total Task Limit : {TOTAL_TASKS_LIMIT}\nTasks Processing : {total_task}\n#total limit exceed </b>", bot ,message)
+            if USER_TASKS_LIMIT == get_user_task(user_id):
+                return sendMessage(f"<b>Bot Total Task Limit : {USER_TASKS_LIMIT} \nYour Tasks : {get_user_task(user_id)}\n#user limit exceed</b>", bot ,message)
+
     mesg = message.text.split('\n')
     message_args = mesg[0].split(maxsplit=1)
     name_args = mesg[0].split('|', maxsplit=1)
     is_gdtot = False
     is_unified = False
     is_udrive = False
-    is_sharer = False
     index = 1
     ratio = None
     seed_time = None
     select = False
     seed = False
+    multi=1
 
     if len(message_args) > 1:
         args = mesg[0].split(maxsplit=3)
@@ -124,8 +108,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
         if len(message_args) > index:
             link = message_args[index].strip()
             if link.isdigit():
-                if multi == 0:
-                    multi = int(link)
+                multi = int(link)
                 link = ''
             elif link.startswith(("|", "pswd:")):
                 link = ''
@@ -157,7 +140,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
 
     reply_to = message.reply_to_message
     if reply_to is not None:
-        file_ = next((i for i in [reply_to.document, reply_to.video, reply_to.audio, reply_to.photo] if i), None)
+        file_ = reply_to.document or reply_to.video or reply_to.audio or reply_to.photo or None
         if not reply_to.from_user.is_bot:
             if reply_to.from_user.username:
                 tag = f"@{reply_to.from_user.username}"
@@ -176,16 +159,15 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 if multi > 1:
                     sleep(4)
                     nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-                    nextmsg = sendMessage(message.text, bot, nextmsg)
+                    nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
                     nextmsg.from_user.id = message.from_user.id
-                    multi -= 1
                     sleep(4)
-                    Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech, multi)).start()
+                    Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
                 return
             else:
                 link = file_.get_file().file_path
 
-    if not is_url(link) and not is_magnet(link) and not ospath.exists(link):
+    if not is_url(link) and not is_magnet(link):
         help_msg = "<b>Send link along with command line:</b>"
         if isQbit:
             help_msg += "\n<code>/qbcmd</code> {link} pswd: xx [zip/unzip]"
@@ -198,7 +180,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             help_msg += "To specify ratio and seed time. Ex: d:0.7:10 (ratio and time) or d:0.7 "
             help_msg += "(only ratio) or d::10 (only time) where time in minutes"
             help_msg += "\n\n<b>Multi links only by replying to first link/file:</b>"																					 
-            help_msg += "\n<code>/command</code> 10(number of links/files)\n\n<b>⚠⁉ If You Don't Know How To Use Bots, Check Others Message. Don't Play With Commands</b>"
+            help_msg += "\n<code>/command</code> 10(number of links/files)"
         else:
             help_msg += "\n<code>/cmd</code> {link} |newname pswd: xx [zip/unzip]"
             help_msg += "\n\n<b>By replying to link/file:</b>"
@@ -212,7 +194,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             help_msg += "To specify ratio and seed time. Ex: d:0.7:10 (ratio and time) or d:0.7 "
             help_msg += "(only ratio) or d::10 (only time) where time in minutes"
             help_msg += "\n\n<b>Multi links only by replying to first link/file:</b>"
-            help_msg += "\n<code>/command</code> 10(number of links/files)\n\n<b>⚠⁉ If You Don't Know How To Use Bots, Check Others Message. Don't Play With Commands</b>"
+            help_msg += "\n<code>/command</code> 10(number of links/files)"
         return sendMessage(help_msg, bot, message)
 
     LOGGER.info(link)
@@ -225,7 +207,6 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
                 is_gdtot = is_gdtot_link(link)
                 is_unified = is_unified_link(link)
                 is_udrive = is_udrive_link(link)
-                is_sharer = is_sharer_link(link)
                 link = direct_link_generator(link)
                 LOGGER.info(f"Generated link: {link}")
             except DirectDownloadLinkException as e:
@@ -242,7 +223,7 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
             gmsg += f"Use /{BotCommands.UnzipMirrorCommand[0]} to extracts Google Drive archive file"
             sendMessage(gmsg, bot, message)
         else:
-            Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, is_gdtot, is_unified, is_udrive, is_sharer, name)).start()
+            Thread(target=add_gd_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}', listener, is_gdtot, is_unified, is_udrive, name)).start()
     elif is_mega_link(link):
         if MEGA_KEY is not None:
             Thread(target=MegaDownloader(listener).add_download, args=(link, f'{DOWNLOAD_DIR}{listener.uid}/')).start()
@@ -268,11 +249,11 @@ def _mirror_leech(bot, message, isZip=False, extract=False, isQbit=False, isLeec
     if multi > 1:
         sleep(4)
         nextmsg = type('nextmsg', (object, ), {'chat_id': message.chat_id, 'message_id': message.reply_to_message.message_id + 1})
-        nextmsg = sendMessage(message.text, bot, nextmsg)
+        nextmsg = sendMessage(message.text.replace(str(multi), str(multi - 1), 1), bot, nextmsg)
         nextmsg.from_user.id = message.from_user.id
         multi -= 1
         sleep(4)
-        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech, multi)).start()
+        Thread(target=_mirror_leech, args=(bot, nextmsg, isZip, extract, isQbit, isLeech)).start()
 
 
 
