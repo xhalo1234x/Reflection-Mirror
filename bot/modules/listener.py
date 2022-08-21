@@ -249,20 +249,6 @@ class MirrorLeechListener:
                             bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
                 except TypeError:
                     pass
-        if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
-            reply_to = self.message.reply_to_message
-            if reply_to is not None:
-                reply_to.delete()
-            auto_delete_message = int(AUTO_DELETE_UPLOAD_MESSAGE_DURATION / 60)
-            if self.message.chat.type == 'private':
-                warnmsg = ''
-            else:
-                if EMOJI_THEME is True:
-                    warnmsg = f'<b>❗ This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
-                else:
-                    warnmsg = f'<b>This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
-        else:
-            warnmsg = ''
         if BOT_PM and self.message.chat.type != 'private':
             if EMOJI_THEME is True:
                 pmwarn = f"<b>😉 I have sent files in PM.</b>\n"
