@@ -300,10 +300,10 @@ class MirrorLeechListener:
                 msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
                 msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
         if EMOJI_THEME is True:
-                msg += f'\n<b>├📚 Total Files: </b>{folders}'
-            else:
-                msg += f'\n<b>├ Total Files: </b>{folders}'
-            if typ != 0:
+            msg += f'\n<b>├📚 Total Files: </b>{folders}'
+        else:
+            msg += f'\n<b>├ Total Files: </b>{folders}'
+        if typ != 0:
                 if EMOJI_THEME is True:
                     msg += f'\n<b>├💀 Corrupted Files: </b>{typ}'
                 else:
