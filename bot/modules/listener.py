@@ -282,45 +282,7 @@ class MirrorLeechListener:
             msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
-        if EMOJI_THEME is True:
-            msg += f'\n<b>├📦 Type: </b>{typ}'
-        else:
-            msg += f'\n<b>├ Type: </b>{typ}'
-            if typ == "Folder":
-                if EMOJI_THEME is True:
-                    msg += f'\n<b>├🗃️ SubFolders: </b>{folders}'
-                    msg += f'\n<b>├🗂️ Files: </b>{files}'
-                else:
-                    msg += f'\n<b>├ SubFolders: </b>{folders}'
-                    msg += f'\n<b>├ Files: </b>{files}'
-            if EMOJI_THEME is True:
-                msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
-                msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
-            else:
-                msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
-                msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
-        if EMOJI_THEME is True:
-            msg += f'\n<b>├📚 Total Files: </b>{folders}'
-        else:
-            msg += f'\n<b>├ Total Files: </b>{folders}'
-        if typ != 0:
-                if EMOJI_THEME is True:
-                    msg += f'\n<b>├💀 Corrupted Files: </b>{typ}'
-                else:
-                    msg += f'\n<b>├ Corrupted Files: </b>{typ}'
        # msg = f"<b>Name: </b><code>{escape(name)}</code>\n<b>Size: </b>{size}"
-        botpm = f"<b>\n\nHey {self.tag}!, I have sent your links in PM.</b>\n"
-        buttons = ButtonMaker()
-        bot_d = bot.get_me()  
-        b_uname = bot_d.username  
-        botstart = f"http://t.me/{b_uname}"  
-        buttons.buildbutton("View links in PM", f"{botstart}")
-        uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
-        reply_to = self.message.reply_to_message
-        if reply_to is not None:
-            reply_to.delete()
-        self.message.delete()
-        Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -358,6 +320,21 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
+            if EMOJI_THEME is True:
+                msg += f'\n<b>├📚 Total Files: </b>{folders}'
+            else:
+                msg += f'\n<b>├ Total Files: </b>{folders}'
+            if typ != 0:
+                if EMOJI_THEME is True:
+                    msg += f'\n<b>├💀 Corrupted Files: </b>{typ}'
+                else:
+                    msg += f'\n<b>├ Corrupted Files: </b>{typ}'
+            if EMOJI_THEME is True:
+                msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
+            else: 
+                msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
             if BOT_PM and self.message.chat.type != 'private':	
                 bot_d = bot.get_me()	
                 b_uname = bot_d.username	
@@ -402,6 +379,23 @@ class MirrorLeechListener:
                     clean_target(self.newDir)
                 return			   			  
         else:
+            if EMOJI_THEME is True:
+                msg += f'\n<b>├📦 Type: </b>{typ}'
+            else:
+                msg += f'\n<b>├ Type: </b>{typ}'
+            if typ == "Folder":
+                if EMOJI_THEME is True:
+                    msg += f'\n<b>├🗃️ SubFolders: </b>{folders}'
+                    msg += f'\n<b>├🗂️ Files: </b>{files}'
+                else:
+                    msg += f'\n<b>├ SubFolders: </b>{folders}'
+                    msg += f'\n<b>├ Files: </b>{files}'
+            if EMOJI_THEME is True:
+                msg += f'\n<b>├⌛ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰👤 cc: </b>{self.tag}\n\n'
+            else:
+                msg += f'\n<b>├ It Tooks:</b> {get_readable_time(time() - self.message.date.timestamp())}'
+                msg += f'\n<b>╰ cc: </b>{self.tag}\n\n'
             buttons = ButtonMaker()
             link = short_url(link)
             buttons.buildbutton("☁️ Drive Link", link)
@@ -471,6 +465,18 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
+            botpm = f"<b>\n\nHey {self.tag}!, I have sent your links in PM.</b>\n"
+            buttons = ButtonMaker()
+            bot_d = bot.get_me()  
+            b_uname = bot_d.username  
+            botstart = f"http://t.me/{b_uname}"  
+            buttons.buildbutton("View links in PM", f"{botstart}")
+            uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+            reply_to = self.message.reply_to_message
+            if reply_to is not None:
+               reply_to.delete()
+            self.message.delete()
+            Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
             if MIRROR_LOGS:	
                 try:	
                     for chatid in MIRROR_LOGS:	
