@@ -296,6 +296,14 @@ class MirrorLeechListener:
             msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
+       # msg = f"<b>Name: </b><code>{escape(name)}</code>\n<b>Size: </b>{size}"
+        botpm = f"<b>\n\nHey {self.tag}!, I have sent your links in PM.</b>\n"
+        buttons = ButtonMaker()
+        bot_d = bot.get_me()  
+        b_uname = bot_d.username  
+        botstart = f"http://t.me/{b_uname}"  
+        buttons.buildbutton("View links in PM", f"{botstart}")
+        sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
@@ -478,25 +486,13 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            uploadmsg = sendMarkup(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
-            Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
-            
-            if MIRROR_LOGS:	
-                try:	
-                    for chatid in MIRROR_LOGS:	
+            for chatid in MIRROR_LOGS:	
                         bot.sendMessage(chat_id=chatid, text=msg,	
-                                        reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
-                                        parse_mode=ParseMode.HTML)	
-                except Exception as e:	
-                    LOGGER.warning(e)	
-            if BOT_PM and self.message.chat.type != 'private':	
-                try:	
-                    bot.sendMessage(chat_id=self.user_id, text=msg,	
-                                    reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),	
-                                    parse_mode=ParseMode.HTML)	
-                except Exception as e:	
-                    LOGGER.warning(e)	
-                    return
+                                        reply_markup=buttons.build_menu(2),	
+                                        parse_mode='HTML')
+            bot.sendMessage(chat_id=self.user_id, text=msg,	
+                            reply_markup=buttons.build_menu(2),	
+                            parse_mode='HTML')	
             if self.seed:
                 if self.isZip:
                     clean_target(f"{self.dir}/{name}")
