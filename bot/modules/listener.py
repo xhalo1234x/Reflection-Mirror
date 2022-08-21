@@ -232,9 +232,6 @@ class MirrorLeechListener:
         buttons.buildbutton("View links in PM", f"{botstart}")
         sendMarkup(msg + botpm, self.bot, self.message, buttons.build_menu(2))
         reply_to = self.message.reply_to_message
-        if reply_to is not None:
-            reply_to.delete()
-        self.message.delete()
         if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
             reply_to = self.message.reply_to_message
             if reply_to is not None:
