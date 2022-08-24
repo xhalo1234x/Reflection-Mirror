@@ -727,9 +727,8 @@ def set_priority(id_):
 
     data = dict(request.form)
 
-    resume = ""
-    
     if len(id_) > 20:
+        resume = ""
         pause = ""
 
         for i, value in data.items():

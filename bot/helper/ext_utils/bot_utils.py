@@ -9,7 +9,6 @@ from urllib.request import urlopen
 from telegram import InlineKeyboardMarkup
 
 from bot.helper.telegram_helper.bot_commands import BotCommands
-from bot import *
 from bot.helper.telegram_helper.button_build import ButtonMaker
 
 import shutil
@@ -149,8 +148,8 @@ def progress_bar(percentage):
         percentage = int(percentage)
     except Exception:
         percentage = 0
-    comp = "█"
-    ncomp = "░"
+    comp = "▰"
+    ncomp = "▱"
     return "".join(comp if i <= percentage // 10 else ncomp for i in range(1, 11))
     
 def get_progress_bar_string(status):
@@ -166,7 +165,7 @@ def get_progress_bar_string(status):
 
 def get_readable_message():
     with download_dict_lock:
-        msg = ""
+        msg = f""
         if STATUS_LIMIT is not None:
             tasks = len(download_dict)
             global pages
@@ -203,8 +202,10 @@ def get_readable_message():
                     try:
                         if EMOJI_THEME is True:
                             msg += f"\n<b>├🌱 Seeders:</b> {download.seeders_num()} | <b>🐌 Leechers:</b> {download.leechers_num()}"
+                            msg += f"\n<b>├🧿 To Select:</b> <code>/{BotCommands.BtSelectCommand} {download.gid()}</code>"
                         else:
                             msg += f"\n<b>├ Seeders:</b> {download.seeders_num()} | <b>Leechers:</b> {download.leechers_num()}"
+                            msg += f"\n<b>├🧿 To Select:</b> <code>/{BotCommands.BtSelectCommand} {download.gid()}</code>"
                     except:
                         pass
                 if download.message.chat.type != 'private':
@@ -459,8 +460,8 @@ Tasks: {tasks}
 
 CPU: {progress_bar(cpu)} {cpu}%
 RAM: {progress_bar(mem)} {mem}%
-DISK: {progress_bar(disk)} {disk}%
 
+DISK: {progress_bar(disk)} {disk}%
 SENT: {sent} | RECV: {recv}
 
 DLs: {num_active} | ULs: {num_upload} | SEEDING: {num_seeding}

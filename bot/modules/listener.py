@@ -1,5 +1,7 @@
 from requests import utils as rutils
 from subprocess import run as srun
+import random
+from random import choice
 from pathlib import PurePath
 from telegram.ext import CommandHandler
 from re import match as re_match, search as re_search, split as re_split
@@ -16,7 +18,8 @@ from bot import bot, Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUT
                 BUTTON_SIX_NAME, BUTTON_SIX_URL, VIEW_LINK, aria2, dispatcher, DOWNLOAD_DIR, \
                 download_dict, download_dict_lock, TG_SPLIT_SIZE, LOGGER, MEGA_KEY, DB_URI, INCOMPLETE_TASK_NOTIFIER, \
                 LEECH_LOG, BOT_PM, MIRROR_LOGS, SOURCE_LINK, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, \
-                MIRROR_ENABLED, LEECH_ENABLED, WATCH_ENABLED, CLONE_ENABLED, LINK_LOGS, EMOJI_THEME
+                MIRROR_ENABLED, LEECH_ENABLED, WATCH_ENABLED, CLONE_ENABLED, LINK_LOGS, EMOJI_THEME, \
+                MIRROR_LOG_URL, LEECH_LOG_URL, TITLE_NAME, LEECH_LOG_INDEXING, PICS
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_gdtot_link, is_mega_link, is_gdrive_link, get_content_type, get_readable_time
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split_file, clean_download, clean_target
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException, NotSupportedExtractionArchive
@@ -28,7 +31,7 @@ from bot.helper.ext_utils.shortenurl import short_url
 from bot.helper.mirror_utils.status_utils.tg_upload_status import TgUploadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.mirror_utils.upload_utils.pyrogramEngine import TgUploader
-from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages, auto_delete_upload_message
+from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, delete_all_messages, update_all_messages, auto_delete_upload_message, sendPhoto
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.ext_utils.db_handler import DbManger
 from bot.helper.ext_utils.telegraph_helper import telegraph
@@ -249,6 +252,20 @@ class MirrorLeechListener:
                             bot.sendMessage(chat_id=link_log, text=slmsg + source_link, parse_mode=ParseMode.HTML )
                 except TypeError:
                     pass
+        if AUTO_DELETE_UPLOAD_MESSAGE_DURATION != -1:
+            reply_to = self.message.reply_to_message
+            if reply_to is not None:
+                reply_to.delete()
+            auto_delete_message = int(AUTO_DELETE_UPLOAD_MESSAGE_DURATION / 60)
+            if self.message.chat.type == 'private':
+                warnmsg = ''
+            else:
+                if EMOJI_THEME is True:
+                    warnmsg = f'<b>❗ This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
+                else:
+                    warnmsg = f'<b>This message will be deleted in <i>{auto_delete_message} minutes</i> from this group.</b>\n'
+        else:
+            warnmsg = ''
         if BOT_PM and self.message.chat.type != 'private':
             if EMOJI_THEME is True:
                 pmwarn = f"<b>😉 I have sent files in PM.</b>\n"
@@ -260,18 +277,18 @@ class MirrorLeechListener:
             pmwarn = ''
         if MIRROR_LOGS and self.message.chat.type != 'private':
             if EMOJI_THEME is True:
-                logwarn = f"<b>⚠️ I have sent files in Mirror Log Channel.(Join Mirror Log channel) </b>\n"
+                logwarn = f"<b>⚠️ I have sent files in Mirror Log Channel. Join <a href=\"{MIRROR_LOG_URL}\">Mirror Log channel</a> </b>\n"
             else:
-                logwarn = f"<b>I have sent files in Mirror Log Channel.(Join Mirror Log channel) </b>\n"
+                logwarn = f"<b>I have sent files in Mirror Log Channel. Join <a href=\"{MIRROR_LOG_URL}\">Mirror Log channel</a> </b>\n"
         elif self.message.chat.type == 'private':
             logwarn = ''
         else:
             logwarn = ''
         if LEECH_LOG and self.message.chat.type != 'private':
             if EMOJI_THEME is True:
-                logleechwarn = f"<b>⚠️ I have sent files in Leech Log Channel.(Join Leech Log channel) </b>\n"
+                logleechwarn = f"<b>⚠️ I have sent files in Leech Log Channel. Join <a href=\"{LEECH_LOG_URL}\">Leech Log channel</a> </b>\n"
             else:
-                logleechwarn = f"<b>I have sent files in Leech Log Channel.(Join Leech Log channel) </b>\n"
+                logleechwarn = f"<b>I have sent files in Leech Log Channel. Join <a href=\"{LEECH_LOG_URL}\">Leech Log channel</a> </b>\n"
         elif self.message.chat.type == 'private':
             logleechwarn = ''
         else:
@@ -282,14 +299,13 @@ class MirrorLeechListener:
             msg = f"<b>╭🗂️ Name: </b><code>{escape(name)}</code>\n<b>├📐 Size: </b>{size}"
         else:
             msg = f"<b>╭ Name: </b><code>{escape(name)}</code>\n<b>├ Size: </b>{size}"
-       # msg = f"<b>Name: </b><code>{escape(name)}</code>\n<b>Size: </b>{size}"
         if self.isLeech:
             if SOURCE_LINK is True:
                 try:
                     mesg = message_args[1]
                     if is_magnet(mesg):
                         link = telegraph.create_page(
-                            title='ReflectionMirror Source Link',
+                            title=f"{TITLE_NAME} Source Link",
                             content=mesg,
                         )["path"]
                         buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -310,7 +326,7 @@ class MirrorLeechListener:
                             source_link = reply_text.strip()
                             if is_magnet(source_link):
                                 link = telegraph.create_page(
-                                    title='ReflectionMirror Source Link',
+                                    title=f"{TITLE_NAME} Source Link",
                                     content=source_link,
                                 )["path"]
                                 buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -344,7 +360,7 @@ class MirrorLeechListener:
                 botstart = ''
             else:
                 botstart = ''
-            if LEECH_LOG:
+            if LEECH_LOG_INDEXING is True:
                 for i in LEECH_LOG:
                     indexmsg = ''
                     for index, (link, name) in enumerate(files.items(), start=1):
@@ -361,17 +377,23 @@ class MirrorLeechListener:
                                         reply_markup=InlineKeyboardMarkup(buttons.build_menu(2)),
                                         parse_mode=ParseMode.HTML)
             if not files:
-                uploadmsg = sendMarkup(msg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                if PICS:
+                    uploadmsg = sendPhoto(msg, self.bot, self.message, random.choice(PICS), InlineKeyboardMarkup(buttons.build_menu(2)))
+                else:
+                    uploadmsg = sendMarkup(msg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
             else:
                 fmsg = ''
                 for index, (link, name) in enumerate(files.items(), start=1):
                     fmsg += f"{index}. <a href='{link}'>{name}</a>\n"
                     if len(fmsg.encode() + msg.encode()) > 4000:
-                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                         sleep(1)
                         fmsg = ''
                 if fmsg != '':
-                    uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
+                    if PICS:
+                        uploadmsg = sendPhoto(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, random.choice(PICS), InlineKeyboardMarkup(buttons.build_menu(2)))
+                    else:
+                        uploadmsg = sendMarkup(msg + fmsg + pmwarn + logleechwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
                     Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
 
             if self.seed:
@@ -434,7 +456,7 @@ class MirrorLeechListener:
                     mesg = message_args[1]
                     if is_magnet(mesg):
                         link = telegraph.create_page(
-                            title='ReflectionMirror Source Link',
+                            title=f"{TITLE_NAME} Source Link",
                             content=mesg,
                         )["path"]
                         buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -455,7 +477,7 @@ class MirrorLeechListener:
                             source_link = reply_text.strip()
                             if is_magnet(source_link):
                                 link = telegraph.create_page(
-                                    title='ReflectionMirror Source Link',
+                                    title=f"{TITLE_NAME} Source Link",
                                     content=source_link,
                                 )["path"]
                                 buttons.buildbutton(f"🔗 Source Link", f"https://graph.org/{link}")
@@ -465,18 +487,12 @@ class MirrorLeechListener:
                         pass
             else:
                 pass
-            botpm = f"<b>\nHey {self.tag}!, I have sent your links in PM.</b>\n"
-            buttons = ButtonMaker()
-            bot_d = bot.get_me()  
-            b_uname = bot_d.username  
-            botstart = f"http://t.me/{b_uname}"  
-            buttons.buildbutton("View links in PM", f"{botstart}")
-            uploadmsg = sendMarkup(msg + botpm, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
-            reply_to = self.message.reply_to_message
-            if reply_to is not None:
-               reply_to.delete()
-            self.message.delete()
+            if PICS:
+                uploadmsg = sendPhoto(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, random.choice(PICS), InlineKeyboardMarkup(buttons.build_menu(2)))
+            else:
+                uploadmsg = sendMarkup(msg + pmwarn + logwarn + warnmsg, self.bot, self.message, InlineKeyboardMarkup(buttons.build_menu(2)))
             Thread(target=auto_delete_upload_message, args=(bot, self.message, uploadmsg)).start()
+            
             if MIRROR_LOGS:	
                 try:	
                     for chatid in MIRROR_LOGS:	

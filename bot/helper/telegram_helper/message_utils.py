@@ -1,12 +1,14 @@
 from time import sleep, time
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import InlineKeyboardMarkup
 from telegram.message import Message
 from telegram.error import RetryAfter
+import random 
+from random import choice
 from pyrogram.errors import FloodWait
 from os import remove
 
 from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, status_reply_dict, status_reply_dict_lock, \
-                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, AUTO_DELETE_UPLOAD_MESSAGE_DURATION
+                Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, bot, rss_session, AUTO_DELETE_UPLOAD_MESSAGE_DURATION, PICS
 from bot.helper.ext_utils.bot_utils import get_readable_message, setInterval
 
 
@@ -36,7 +38,6 @@ def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMar
     except Exception as e:
         LOGGER.error(str(e))
         return
-
 
 def editMessage(text: str, message: Message, reply_markup=None):
     try:
@@ -96,6 +97,21 @@ def sendPhoto(text: str, bot, message, photo, reply_markup=None):
         LOGGER.warning(str(r))
         sleep(r.retry_after * 1.5)
         return sendPhoto(text, bot, message, photo, reply_markup)
+    except Exception as e:
+        LOGGER.error(str(e))
+        return
+
+def sendPhotos(caption: str, bot, message: Message, photo, reply_markup=None):
+    try:
+        return bot.send_photo(message.chat_id,
+                              reply_to_message_id=message.message_id,
+                              caption=caption, reply_markup=reply_markup,
+                              allow_sending_without_reply=True,
+                              photo=photo, parse_mode='HTMl')
+    except RetryAfter as r:
+        LOGGER.warning(str(r))
+        sleep(r.retry_after * 1.5)
+        return sendPhotoMsg(caption, bot, message, photo, reply_markup)
     except Exception as e:
         LOGGER.error(str(e))
         return

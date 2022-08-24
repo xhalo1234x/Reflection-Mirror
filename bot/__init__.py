@@ -1,3 +1,5 @@
+import re
+from os import environ
 from logging import getLogger, FileHandler, StreamHandler, INFO, basicConfig, error as log_error, info as log_info, warning as log_warning
 from socket import setdefaulttimeout
 from faulthandler import enable as faulthandler_enable
@@ -147,6 +149,7 @@ EXTENSION_FILTER = set(['.aria2'])
 LEECH_LOG = set()	
 MIRROR_LOGS = set()
 LINK_LOGS = set()
+
 
 try:
     aid = getConfig('AUTHORIZED_CHATS')
@@ -414,6 +417,9 @@ try:
     RSS_CHAT_ID = int(RSS_CHAT_ID)
 except:
     RSS_CHAT_ID = None
+
+PICS = (environ.get('PICS', 'https://telegra.ph/file/ff99423eb87ccf01b4a07.jpg https://telegra.ph/file/9aa8dd372f4739fe02d85.jpg https://telegra.ph/file/adffc5ce502f5578e2806.jpg https://telegra.ph/file/6937b60bc2617597b92fd.jpg https://telegra.ph/file/09a7abaab340143f9c7e7.jpg https://telegra.ph/file/5a82c4a59bd04d415af1c.jpg https://telegra.ph/file/323986d3bd9c4c1b3cb26.jpg https://telegra.ph/file/b8a82dcb89fb296f92ca0.jpg https://telegra.ph/file/31adab039a85ed88e22b0.jpg https://telegra.ph/file/c0e0f4c3ed53ac8438f34.jpg https://telegra.ph/file/eede835fb3c37e07c9cee.jpg https://telegra.ph/file/e17d2d068f71a9867d554.jpg https://telegra.ph/file/8fb1ae7d995e8735a7c25.jpg https://telegra.ph/file/8fed19586b4aa019ec215.jpg https://telegra.ph/file/8e6c923abd6139083e1de.jpg https://telegra.ph/file/0049d801d29e83d68b001.jpg')).split()
+
 try:
     RSS_USER_SESSION_STRING = getConfig('RSS_USER_SESSION_STRING')
     if len(RSS_USER_SESSION_STRING) == 0:
@@ -606,11 +612,28 @@ try:
 except KeyError:	
     BOT_PM = False
 try:
+    MIRROR_LOG_URL = getConfig('MIRROR_LOG_URL')
+    if len(MIRROR_LOG_URL) == 0:
+        MIRROR_LOG_URL = ''
+except KeyError:
+    MIRROR_LOG_URL = ''
+try:
+    LEECH_LOG_URL = getConfig('LEECH_LOG_URL')
+    if len(LEECH_LOG_URL) == 0:
+        LEECH_LOG_URL = ''
+except KeyError:
+    LEECH_LOG_URL = ''
+try:	
+    LEECH_LOG_INDEXING = getConfig('LEECH_LOG_INDEXING')	
+    LEECH_LOG_INDEXING = LEECH_LOG_INDEXING.lower() == 'true'	
+except KeyError:	
+    LEECH_LOG_INDEXING = False
+try:
     AUTHOR_NAME = getConfig('AUTHOR_NAME')
     if len(AUTHOR_NAME) == 0:
-        AUTHOR_NAME = 'Karan'
+        AUTHOR_NAME = 'Dipesh'
 except KeyError:
-    AUTHOR_NAME = 'Karan'
+    AUTHOR_NAME = 'Dipesh'
 try:
     AUTHOR_URL = getConfig('AUTHOR_URL')
     if len(AUTHOR_URL) == 0:
@@ -620,15 +643,40 @@ except KeyError:
 try:
     GD_INFO = getConfig('GD_INFO')
     if len(GD_INFO) == 0:
-        GD_INFO = 'Uploaded by DipeshMirror  Mirror Bot'
+        GD_INFO = 'Uploaded by ReflectionMirror Mirror Bot'
 except KeyError:
-    GD_INFO = 'Uploaded by DipeshMirror Mirror Bot'
+    GD_INFO = 'Uploaded by ReflectionMirror Mirror Bot'
 try:
     TITLE_NAME = getConfig('TITLE_NAME')
     if len(TITLE_NAME) == 0:
-        TITLE_NAME = 'DipeshMirror-Mirror-Search'
+        TITLE_NAME = 'ReflectionMirror'
 except KeyError:
-    TITLE_NAME = 'DipeshMirror-Mirror-Search'
+    TITLE_NAME = 'ReflectionMirror'
+try:
+    START_BTN1_NAME = getConfig('START_BTN1_NAME')
+    START_BTN1_URL = getConfig('START_BTN1_URL')
+    if len(START_BTN1_NAME) == 0 or len(START_BTN1_URL) == 0:
+        raise KeyError
+except:
+    START_BTN1_NAME = 'Master'
+    START_BTN1_URL = 'https://t.me/toxytech'
+
+try:
+    START_BTN2_NAME = getConfig('START_BTN2_NAME')
+    START_BTN2_URL = getConfig('START_BTN2_URL')
+    if len(START_BTN2_NAME) == 0 or len(START_BTN2_URL) == 0:
+        raise KeyError
+except:
+    START_BTN2_NAME = 'Support Group'
+    START_BTN2_URL = 'https://t.me/DipeshMirror'
+
+try:
+    CREDIT_NAME = getConfig('CREDIT_NAME')
+    if len(CREDIT_NAME) == 0:
+        CREDIT_NAME = 'ReflectionMirror'
+except KeyError:
+    CREDIT_NAME = 'ReflectionMirror'
+
 try:
     FINISHED_PROGRESS_STR = getConfig('FINISHED_PROGRESS_STR') 
     UN_FINISHED_PROGRESS_STR = getConfig('UN_FINISHED_PROGRESS_STR')
@@ -747,7 +795,7 @@ except:
 try:
     IMAGE_URL = getConfig('IMAGE_URL')
 except KeyError:
-    IMAGE_URL = 'http://telegra.ph/REFLECTION-07-18'
+    IMAGE_URL = 'https://graph.org/file/6b22ef7b8a733c5131d3f.jpg'
 try:
     EMOJI_THEME = getConfig('EMOJI_THEME')
     EMOJI_THEME = EMOJI_THEME.lower() == 'true'
