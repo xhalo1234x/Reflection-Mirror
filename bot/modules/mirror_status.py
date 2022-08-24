@@ -4,7 +4,7 @@ from threading import Thread
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
 from bot import dispatcher, status_reply_dict, status_reply_dict_lock, download_dict, download_dict_lock, botStartTime, DOWNLOAD_DIR, OWNER_ID, Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL
-from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage, auto_delete_message, sendStatusMessage, update_all_messages, delete_all_messages, editMessage, sendPhotos
+from bot.helper.telegram_helper.message_utils import sendMessage, deleteMessage, auto_delete_message, sendStatusMessage, update_all_messages, delete_all_messages, editMessage 
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, get_readable_time, turn, pop_up_stats, setInterval
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -46,9 +46,9 @@ def status_pages(update, context):
     chat_id = update.effective_chat.id
     admins = context.bot.get_chat_member(chat_id, user_id).status in ['creator', 'administrator'] or user_id in [OWNER_ID]
     data = query.data
-    data = data.split(" ")
+    data = data.split()
     if data[1] == "refresh":
-        editCaption(f"{user_name} Bro Wait I Am Refreshing", msg)
+        editMessage(f"{user_name}, Refreshing Status...", msg)
         sleep(2)
         update_all_messages()
         query.answer()
@@ -60,14 +60,15 @@ def status_pages(update, context):
             delete_all_messages()
             query.answer()
         else:
-            query.answer(text=f"{user_name}, I Will Only Work For Admins", show_alert=True)
+            query.answer(text=f"{user_name}, You Don't Have Rights To Close This!", show_alert=True)
     if data[1] == "pre" or "nex":
         done = turn(data)
-        if done:
-            update_all_messages()
-            query.answer()
-        else:
-            msg.delete()
+    if done:
+        update_all_messages(True)
+        query.answer()
+    else:
+        msg.delete()
+
 
 mirror_status_handler = CommandHandler(BotCommands.StatusCommand, mirror_status,
                                        filters=CustomFilters.authorized_chat | CustomFilters.authorized_user, run_async=True)
