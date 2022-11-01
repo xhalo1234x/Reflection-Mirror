@@ -1,4 +1,4 @@
-FROM dipeshpatil123/dipeshmirror:latest
+FROM dipeshpatil123/dipeshmirro
 
 WORKDIR /usr/src/app
 RUN chmod 777 /usr/src/app
